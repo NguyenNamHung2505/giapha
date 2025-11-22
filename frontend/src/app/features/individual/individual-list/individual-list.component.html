@@ -1,0 +1,123 @@
+<div class="individual-list-container">
+  <div class="header">
+    <div class="title-section">
+      <button mat-icon-button (click)="backToTree()" matTooltip="Back to Trees">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <div>
+        <h1>Individuals</h1>
+        <p class="tree-name" *ngIf="treeName">{{ treeName }}</p>
+      </div>
+    </div>
+    <button mat-raised-button color="primary" (click)="createIndividual()">
+      <mat-icon>person_add</mat-icon>
+      Add Individual
+    </button>
+  </div>
+
+  <mat-card class="individuals-card">
+    <div class="search-section">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search by name</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Enter name...">
+        <mat-icon matPrefix>search</mat-icon>
+        <button mat-icon-button matSuffix *ngIf="searchControl.value" (click)="clearSearch()">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </mat-form-field>
+    </div>
+
+    <div *ngIf="loading" class="loading-spinner">
+      <mat-icon>hourglass_empty</mat-icon>
+      <p>Loading individuals...</p>
+    </div>
+
+    <div *ngIf="!loading && individuals.length === 0" class="empty-state">
+      <mat-icon>people_outline</mat-icon>
+      <h2>{{ searchControl.value ? 'No individuals found' : 'No Individuals Yet' }}</h2>
+      <p *ngIf="!searchControl.value">Start building your family tree by adding individuals</p>
+      <p *ngIf="searchControl.value">Try a different search term</p>
+      <button *ngIf="!searchControl.value" mat-raised-button color="primary" (click)="createIndividual()">
+        <mat-icon>person_add</mat-icon>
+        Add First Individual
+      </button>
+    </div>
+
+    <div *ngIf="!loading && individuals.length > 0">
+      <table mat-table [dataSource]="individuals" class="individuals-table">
+        <!-- Full Name Column -->
+        <ng-container matColumnDef="fullName">
+          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <td mat-cell *matCellDef="let individual">
+            <div class="name-cell">
+              <mat-icon class="person-icon">person</mat-icon>
+              <div class="name-info">
+                <span class="full-name">{{ individual.fullName }}</span>
+                <span class="life-dates" *ngIf="individual.birthDate || individual.deathDate">
+                  {{ individual.birthDate ? (individual.birthDate | date:'yyyy') : '?' }} -
+                  {{ individual.deathDate ? (individual.deathDate | date:'yyyy') : 'present' }}
+                </span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Birth Date Column -->
+        <ng-container matColumnDef="birthDate">
+          <th mat-header-cell *matHeaderCellDef>Birth Date</th>
+          <td mat-cell *matCellDef="let individual">
+            {{ individual.birthDate ? (individual.birthDate | date:'mediumDate') : '-' }}
+          </td>
+        </ng-container>
+
+        <!-- Birth Place Column -->
+        <ng-container matColumnDef="birthPlace">
+          <th mat-header-cell *matHeaderCellDef>Birth Place</th>
+          <td mat-cell *matCellDef="let individual">
+            <span class="place">{{ individual.birthPlace || '-' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Gender Column -->
+        <ng-container matColumnDef="gender">
+          <th mat-header-cell *matHeaderCellDef>Gender</th>
+          <td mat-cell *matCellDef="let individual">
+            <mat-chip *ngIf="individual.gender" class="gender-chip">
+              {{ individual.gender }}
+            </mat-chip>
+            <span *ngIf="!individual.gender">-</span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <td mat-cell *matCellDef="let individual">
+            <div class="action-buttons">
+              <button mat-icon-button (click)="viewIndividual(individual)" matTooltip="View Details">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button (click)="editIndividual(individual)" matTooltip="Edit Individual">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteIndividual(individual)" matTooltip="Delete Individual">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="individual-row"></tr>
+      </table>
+
+      <mat-paginator
+        [length]="totalElements"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 20, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  </mat-card>
+</div>

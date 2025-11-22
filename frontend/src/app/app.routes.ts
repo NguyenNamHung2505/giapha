@@ -31,6 +31,26 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tree/tree-form/tree-form.component').then(m => m.TreeFormComponent)
   },
   {
+    path: 'trees/:treeId/individuals',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/individual/individual-list/individual-list.component').then(m => m.IndividualListComponent)
+  },
+  {
+    path: 'trees/:treeId/individuals/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/individual/individual-form/individual-form.component').then(m => m.IndividualFormComponent)
+  },
+  {
+    path: 'trees/:treeId/individuals/:id',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/individual/individual-list/individual-list.component').then(m => m.IndividualListComponent)
+  },
+  {
+    path: 'trees/:treeId/individuals/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/individual/individual-form/individual-form.component').then(m => m.IndividualFormComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

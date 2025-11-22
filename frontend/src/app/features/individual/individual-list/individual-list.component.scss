@@ -1,0 +1,221 @@
+.individual-list-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .title-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 500;
+      margin: 0;
+      color: rgba(0, 0, 0, 0.87);
+    }
+
+    .tree-name {
+      font-size: 0.875rem;
+      color: rgba(0, 0, 0, 0.6);
+      margin: 4px 0 0 0;
+    }
+  }
+
+  button {
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.individuals-card {
+  padding: 24px;
+}
+
+.search-section {
+  margin-bottom: 24px;
+
+  .search-field {
+    width: 100%;
+    max-width: 400px;
+  }
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  color: rgba(0, 0, 0, 0.54);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+
+  mat-icon {
+    font-size: 72px;
+    width: 72px;
+    height: 72px;
+    color: rgba(0, 0, 0, 0.38);
+    margin-bottom: 24px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0 0 8px 0;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  p {
+    font-size: 1rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 24px;
+  }
+
+  button {
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.individuals-table {
+  width: 100%;
+  background: white;
+
+  th {
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .person-icon {
+      color: #3f51b5;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .name-info {
+      display: flex;
+      flex-direction: column;
+
+      .full-name {
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+      }
+
+      .life-dates {
+        font-size: 0.75rem;
+        color: rgba(0, 0, 0, 0.6);
+        margin-top: 2px;
+      }
+    }
+  }
+
+  .place {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.875rem;
+  }
+
+  .gender-chip {
+    font-size: 0.75rem;
+    min-height: 24px;
+    padding: 0 8px;
+    background-color: #e3f2fd;
+    color: #1976d2;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+
+    button {
+      transition: transform 0.2s;
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+.individual-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f5f5f5;
+  }
+}
+
+mat-paginator {
+  background: transparent;
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .individual-list-container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    .title-section {
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .individuals-card {
+    padding: 16px;
+  }
+
+  .search-section .search-field {
+    max-width: 100%;
+  }
+
+  .individuals-table {
+    .place {
+      display: none;
+    }
+  }
+}
