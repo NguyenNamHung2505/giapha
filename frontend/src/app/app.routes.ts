@@ -16,6 +16,21 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register.component').then(m => m.RegisterComponent)
   },
   {
+    path: 'trees',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/tree/tree-list/tree-list.component').then(m => m.TreeListComponent)
+  },
+  {
+    path: 'trees/new',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/tree/tree-form/tree-form.component').then(m => m.TreeFormComponent)
+  },
+  {
+    path: 'trees/:id/edit',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/tree/tree-form/tree-form.component').then(m => m.TreeFormComponent)
+  },
+  {
     path: '**',
     redirectTo: ''
   }

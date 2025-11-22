@@ -1,0 +1,68 @@
+<div class="tree-form-container">
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>
+        <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
+        {{ isEditMode ? 'Edit Family Tree' : 'Create New Family Tree' }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="treeForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tree Name</mat-label>
+          <input
+            matInput
+            formControlName="name"
+            placeholder="Enter tree name"
+            autocomplete="off">
+          <mat-icon matPrefix>account_tree</mat-icon>
+          <mat-error *ngIf="name?.hasError('required')">
+            Tree name is required
+          </mat-error>
+          <mat-error *ngIf="name?.hasError('minlength')">
+            Tree name must be at least 1 character
+          </mat-error>
+          <mat-error *ngIf="name?.hasError('maxlength')">
+            Tree name must not exceed 255 characters
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <textarea
+            matInput
+            formControlName="description"
+            placeholder="Enter a description for your family tree (optional)"
+            rows="5"
+            autocomplete="off"></textarea>
+          <mat-icon matPrefix>description</mat-icon>
+          <mat-hint>{{ description?.value?.length || 0 }} / 5000 characters</mat-hint>
+          <mat-error *ngIf="description?.hasError('maxlength')">
+            Description must not exceed 5000 characters
+          </mat-error>
+        </mat-form-field>
+
+        <div class="form-actions">
+          <button
+            mat-button
+            type="button"
+            (click)="cancel()"
+            [disabled]="loading">
+            Cancel
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="loading || treeForm.invalid">
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading">
+              {{ isEditMode ? 'Update Tree' : 'Create Tree' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
