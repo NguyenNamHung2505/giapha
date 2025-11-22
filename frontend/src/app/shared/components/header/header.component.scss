@@ -1,0 +1,21 @@
+.app-title {
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 500;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-name {
+  margin-left: 8px;
+}
+
+.menu-button {
+  margin-right: 16px;
+}

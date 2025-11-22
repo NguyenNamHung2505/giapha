@@ -1,0 +1,45 @@
+<div class="home-container">
+  <div class="welcome-section" *ngIf="currentUser$ | async as user">
+    <h1>Welcome back, {{ user.name }}!</h1>
+    <p class="subtitle">Manage your family trees and discover your heritage</p>
+  </div>
+
+  <div class="quick-actions-section">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <mat-card *ngFor="let action of quickActions" class="action-card">
+        <mat-card-content>
+          <div class="card-icon" [class]="'icon-' + action.color">
+            <mat-icon>{{ action.icon }}</mat-icon>
+          </div>
+          <h3>{{ action.title }}</h3>
+          <p>{{ action.description }}</p>
+          <button mat-raised-button [color]="action.color" [routerLink]="action.route">
+            Get Started
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <div class="info-section">
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>info</mat-icon>
+          Getting Started
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Welcome to Family Tree Manager! Here's how to get started:</p>
+        <ul>
+          <li>Create your first family tree to begin organizing your family history</li>
+          <li>Add individuals with their details, dates, and relationships</li>
+          <li>Upload photos, documents, and other media to preserve memories</li>
+          <li>Visualize your family connections with interactive tree views</li>
+          <li>Share trees with family members for collaborative genealogy</li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
