@@ -15,8 +15,11 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
  * @author Family Tree Team
  * @version 1.0.0
  */
-@SpringBootApplication
-@EnableCaching
+@SpringBootApplication(exclude = {
+        org.springframework.boot.autoconfigure.session.SessionAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class
+})
+// @EnableCaching  // Will enable in later phases when Redis is needed
 @EnableJpaAuditing
 public class FamilyTreeApplication {
 
