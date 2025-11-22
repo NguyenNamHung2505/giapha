@@ -1,0 +1,20 @@
+{
+  "version": "0.4.2",
+  "environments": [
+    "cursor",
+    "claude",
+    "github",
+    "gemini"
+  ],
+  "initializedPhases": [
+    "requirements",
+    "design",
+    "planning",
+    "implementation",
+    "testing",
+    "deployment",
+    "monitoring"
+  ],
+  "createdAt": "2025-11-22T04:24:20.379Z",
+  "updatedAt": "2025-11-22T04:24:20.505Z"
+}
