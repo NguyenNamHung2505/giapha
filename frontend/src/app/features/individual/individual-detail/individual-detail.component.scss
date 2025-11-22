@@ -1,0 +1,263 @@
+.detail-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px;
+  color: rgba(0, 0, 0, 0.54);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+  }
+
+  p {
+    font-size: 1rem;
+    margin-top: 16px;
+  }
+}
+
+.detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header-card {
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+
+    .individual-info {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      flex: 1;
+
+      .name-section {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        flex: 1;
+
+        .person-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+          color: #3f51b5;
+        }
+
+        h1 {
+          font-size: 2rem;
+          font-weight: 500;
+          margin: 0 0 8px 0;
+          color: rgba(0, 0, 0, 0.87);
+        }
+
+        .life-years {
+          font-size: 1rem;
+          color: rgba(0, 0, 0, 0.6);
+          margin: 0 0 4px 0;
+        }
+
+        .age {
+          font-size: 0.875rem;
+          color: rgba(0, 0, 0, 0.54);
+          margin: 0;
+        }
+      }
+
+      .gender-chip {
+        font-size: 0.875rem;
+        min-height: 28px;
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+.info-card {
+  mat-card-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: rgba(0, 0, 0, 0.54);
+        letter-spacing: 0.5px;
+      }
+
+      span {
+        font-size: 1rem;
+        color: rgba(0, 0, 0, 0.87);
+      }
+    }
+  }
+
+  .biography-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.54);
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: rgba(0, 0, 0, 0.87);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      margin: 0;
+    }
+  }
+}
+
+.relationships-card {
+  mat-card-title {
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .relationship-section {
+    margin-bottom: 24px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.87);
+      margin: 0 0 12px 0;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+        color: #3f51b5;
+      }
+    }
+
+    .relationship-list {
+      mat-chip-listbox {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      mat-chip {
+        cursor: pointer;
+        transition: transform 0.2s;
+
+        &:hover {
+          transform: scale(1.05);
+          background-color: #e3f2fd;
+        }
+
+        .dates {
+          font-size: 0.75rem;
+          color: rgba(0, 0, 0, 0.6);
+          margin-left: 4px;
+        }
+
+        .relationship-type {
+          font-size: 0.7rem;
+          text-transform: uppercase;
+          color: rgba(0, 0, 0, 0.54);
+          margin-left: 4px;
+        }
+      }
+    }
+  }
+
+  mat-divider {
+    margin: 24px 0;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: rgba(0, 0, 0, 0.38);
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: rgba(0, 0, 0, 0.6);
+      margin: 0;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .detail-container {
+    padding: 16px;
+  }
+
+  .header-card .header-section {
+    flex-direction: column;
+
+    .action-buttons {
+      width: 100%;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

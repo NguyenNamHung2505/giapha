@@ -43,7 +43,7 @@ export const routes: Routes = [
   {
     path: 'trees/:treeId/individuals/:id',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/individual/individual-list/individual-list.component').then(m => m.IndividualListComponent)
+    loadComponent: () => import('./features/individual/individual-detail/individual-detail.component').then(m => m.IndividualDetailComponent)
   },
   {
     path: 'trees/:treeId/individuals/:id/edit',

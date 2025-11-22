@@ -1,0 +1,153 @@
+<div class="detail-container">
+  <div class="loading-spinner" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading individual...</p>
+  </div>
+
+  <div *ngIf="!loading && individual" class="detail-content">
+    <!-- Header Section -->
+    <mat-card class="header-card">
+      <mat-card-content>
+        <div class="header-section">
+          <div class="individual-info">
+            <div class="name-section">
+              <mat-icon class="person-icon">person</mat-icon>
+              <div>
+                <h1>{{ individual.fullName }}</h1>
+                <p class="life-years">{{ getLifeYears() }}</p>
+                <p class="age" *ngIf="getAge()">Age: {{ getAge() }} years</p>
+              </div>
+            </div>
+            <mat-chip *ngIf="individual.gender" class="gender-chip">{{ individual.gender }}</mat-chip>
+          </div>
+
+          <div class="action-buttons">
+            <button mat-button (click)="back()">
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </button>
+            <button mat-button color="primary" (click)="editIndividual()">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+            <button mat-button color="warn" (click)="deleteIndividual()">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Personal Information -->
+    <mat-card class="info-card">
+      <mat-card-header>
+        <mat-card-title>Personal Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="info-grid">
+          <div class="info-item" *ngIf="individual.givenName">
+            <label>Given Name:</label>
+            <span>{{ individual.givenName }}</span>
+          </div>
+          <div class="info-item" *ngIf="individual.surname">
+            <label>Surname:</label>
+            <span>{{ individual.surname }}</span>
+          </div>
+          <div class="info-item" *ngIf="individual.suffix">
+            <label>Suffix:</label>
+            <span>{{ individual.suffix }}</span>
+          </div>
+          <div class="info-item" *ngIf="individual.birthDate">
+            <label>Birth Date:</label>
+            <span>{{ individual.birthDate | date: 'mediumDate' }}</span>
+          </div>
+          <div class="info-item" *ngIf="individual.birthPlace">
+            <label>Birth Place:</label>
+            <span>{{ individual.birthPlace }}</span>
+          </div>
+          <div class="info-item" *ngIf="individual.deathDate">
+            <label>Death Date:</label>
+            <span>{{ individual.deathDate | date: 'mediumDate' }}</span>
+          </div>
+          <div class="info-item" *ngIf="individual.deathPlace">
+            <label>Death Place:</label>
+            <span>{{ individual.deathPlace }}</span>
+          </div>
+        </div>
+
+        <div class="biography-section" *ngIf="individual.biography">
+          <label>Biography:</label>
+          <p>{{ individual.biography }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Relationships -->
+    <mat-card class="relationships-card">
+      <mat-card-header>
+        <mat-card-title>Relationships</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Parents -->
+        <div class="relationship-section" *ngIf="parents.length > 0">
+          <h3><mat-icon>supervisor_account</mat-icon> Parents</h3>
+          <div class="relationship-list">
+            <mat-chip-listbox>
+              <mat-chip *ngFor="let rel of parents" (click)="goToIndividual(rel.individual1.id)">
+                <span>{{ rel.individual1.fullName }}</span>
+                <span class="dates" *ngIf="rel.individual1.birthDate || rel.individual1.deathDate">
+                  ({{ rel.individual1.birthDate ? (rel.individual1.birthDate | date: 'yyyy') : '?' }} -
+                   {{ rel.individual1.deathDate ? (rel.individual1.deathDate | date: 'yyyy') : 'present' }})
+                </span>
+              </mat-chip>
+            </mat-chip-listbox>
+          </div>
+        </div>
+
+        <mat-divider *ngIf="parents.length > 0 && (spouses.length > 0 || children.length > 0)"></mat-divider>
+
+        <!-- Spouses/Partners -->
+        <div class="relationship-section" *ngIf="spouses.length > 0">
+          <h3><mat-icon>favorite</mat-icon> Spouses & Partners</h3>
+          <div class="relationship-list">
+            <mat-chip-listbox>
+              <mat-chip *ngFor="let rel of spouses" (click)="goToIndividual(rel.individual1.id === individualId ? rel.individual2.id : rel.individual1.id)">
+                <span>{{ rel.individual1.id === individualId ? rel.individual2.fullName : rel.individual1.fullName }}</span>
+                <span class="relationship-type">{{ rel.type }}</span>
+                <span class="dates" *ngIf="rel.startDate || rel.endDate">
+                  ({{ rel.startDate ? (rel.startDate | date: 'yyyy') : '?' }} -
+                   {{ rel.endDate ? (rel.endDate | date: 'yyyy') : 'present' }})
+                </span>
+              </mat-chip>
+            </mat-chip-listbox>
+          </div>
+        </div>
+
+        <mat-divider *ngIf="spouses.length > 0 && children.length > 0"></mat-divider>
+
+        <!-- Children -->
+        <div class="relationship-section" *ngIf="children.length > 0">
+          <h3><mat-icon>child_care</mat-icon> Children</h3>
+          <div class="relationship-list">
+            <mat-chip-listbox>
+              <mat-chip *ngFor="let rel of children" (click)="goToIndividual(rel.individual2.id)">
+                <span>{{ rel.individual2.fullName }}</span>
+                <span class="dates" *ngIf="rel.individual2.birthDate || rel.individual2.deathDate">
+                  ({{ rel.individual2.birthDate ? (rel.individual2.birthDate | date: 'yyyy') : '?' }} -
+                   {{ rel.individual2.deathDate ? (rel.individual2.deathDate | date: 'yyyy') : 'present' }})
+                </span>
+              </mat-chip>
+            </mat-chip-listbox>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="parents.length === 0 && spouses.length === 0 && children.length === 0">
+          <mat-icon>link_off</mat-icon>
+          <p>No relationships recorded</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
