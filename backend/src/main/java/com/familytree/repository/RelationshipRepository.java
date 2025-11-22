@@ -33,6 +33,13 @@ public interface RelationshipRepository extends JpaRepository<Relationship, UUID
     List<Relationship> findByTreeId(UUID treeId);
 
     /**
+     * Count relationships in a tree
+     * @param treeId the tree ID
+     * @return count of relationships
+     */
+    long countByTreeId(UUID treeId);
+
+    /**
      * Find relationships of a specific type for an individual
      * @param individualId the individual ID
      * @param type the relationship type
@@ -90,11 +97,4 @@ public interface RelationshipRepository extends JpaRepository<Relationship, UUID
      * This will be implemented in the service layer using native query
      */
     // Native query will be added in service layer for better control
-
-    /**
-     * Count relationships in a tree
-     * @param treeId the tree ID
-     * @return count of relationships
-     */
-    long countByTreeId(UUID treeId);
 }

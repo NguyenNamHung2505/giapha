@@ -72,7 +72,8 @@ export class TreeListComponent implements OnInit {
   }
 
   viewTree(tree: Tree): void {
-    this.router.navigate(['/trees', tree.id]);
+    // Navigate to the individuals list for this tree
+    this.router.navigate(['/trees', tree.id, 'individuals']);
   }
 
   editTree(tree: Tree): void {

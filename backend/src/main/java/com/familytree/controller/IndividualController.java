@@ -79,7 +79,7 @@ public class IndividualController {
             Authentication authentication) {
 
         log.info("Fetching individual {} for user: {}", id, authentication.getName());
-        IndividualResponse response = individualService.getIndividual(id, authentication.getName());
+        IndividualResponse response = individualService.getIndividual(treeId, id, authentication.getName());
         return ResponseEntity.ok(response);
     }
 

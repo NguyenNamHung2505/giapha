@@ -160,17 +160,18 @@ description: Break down work into actionable tasks and estimate timeline
   - Add loading states
   - Optimize rendering for large trees
 
-### Phase 4: Media Management
+### Phase 4: Media Management ✅ COMPLETED
 **Goal**: Upload, store, and display photos and documents
 
-- [ ] **Task 4.1**: MinIO storage configuration
+- [x] **Task 4.1**: MinIO storage configuration
   - Configure MinIO client bean in Spring Boot
   - Create MinioService for file operations
   - Set up bucket creation on application startup
   - Implement storage adapter interface for flexibility
   - Configure file naming and organization strategy (tree-id/individual-id/filename)
+  - **Status**: ✅ Complete - MinioConfig.java and MinioService.java created with full functionality
 
-- [ ] **Task 4.2**: Media upload (Spring Boot backend)
+- [x] **Task 4.2**: Media upload (Spring Boot backend)
   - Create MediaController with multipart endpoints
   - Implement MediaService with MinIO integration
   - Handle MultipartFile upload (POST /api/individuals/{id}/media)
@@ -178,15 +179,17 @@ description: Break down work into actionable tasks and estimate timeline
   - Add file size limits (5MB via spring.servlet.multipart.max-file-size)
   - Generate thumbnails using Thumbnailator library
   - Store media metadata in Media entity
+  - **Status**: ✅ Complete - MediaService.java created with full upload, validation, and thumbnail generation
 
-- [ ] **Task 4.3**: Media retrieval (Spring Boot backend)
+- [x] **Task 4.3**: Media retrieval (Spring Boot backend)
   - Implement get media endpoint (GET /api/media/{id}) streaming from MinIO
   - Implement delete media endpoint (DELETE /api/media/{id})
   - Add @PreAuthorize authorization checks
   - Implement thumbnail serving with caching headers
   - Handle MinIO exceptions and error responses
+  - **Status**: ✅ Complete - MediaController.java created with all REST endpoints (GET, PUT, DELETE, download, stream, thumbnail)
 
-- [ ] **Task 4.4**: Media upload (Angular frontend)
+- [x] **Task 4.4**: Media upload (Angular frontend)
   - Create media feature module
   - Build media-uploader component with file input
   - Implement drag-and-drop using Angular CDK
@@ -194,14 +197,16 @@ description: Break down work into actionable tasks and estimate timeline
   - Add client-side file validation (size, type)
   - Display upload errors with user-friendly messages
   - Show upload progress bar
+  - **Status**: ✅ Complete - MediaUploaderComponent created with drag-and-drop, progress tracking, and validation
 
-- [ ] **Task 4.5**: Media display (Angular frontend)
+- [x] **Task 4.5**: Media display (Angular frontend)
   - Create media-gallery component with grid layout
   - Implement photo lightbox/modal using Angular Material dialog
   - Display media on individual-detail page
   - Add captions and metadata editing
   - Implement delete with confirmation dialog
   - Lazy load images for performance
+  - **Status**: ✅ Complete - MediaGalleryComponent created with grid layout, caption editing, and integrated into individual-detail page with tabs
 
 ### Phase 5: GEDCOM Import/Export
 **Goal**: Support standard genealogy file format

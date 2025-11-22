@@ -1,5 +1,6 @@
 package com.familytree.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,6 +41,7 @@ public class FamilyTree {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnoreProperties({"ownedTrees", "treePermissions", "passwordHash"})
     private User owner;
 
     @NotBlank
@@ -61,13 +63,16 @@ public class FamilyTree {
     // Relationships
     @OneToMany(mappedBy = "tree", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnoreProperties({"tree", "mediaFiles", "events"})
     private Set<Individual> individuals = new HashSet<>();
 
     @OneToMany(mappedBy = "tree", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnoreProperties({"tree", "user"})
     private Set<TreePermission> permissions = new HashSet<>();
 
     @OneToMany(mappedBy = "tree", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnoreProperties({"tree"})
     private Set<Relationship> relationships = new HashSet<>();
 }

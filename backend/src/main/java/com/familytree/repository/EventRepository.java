@@ -73,6 +73,13 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     long countByIndividual(Individual individual);
 
     /**
+     * Count events by individual ID
+     * @param individualId the individual ID
+     * @return count of events
+     */
+    long countByIndividualId(UUID individualId);
+
+    /**
      * Find events by type across a tree
      * @param treeId the tree ID
      * @param type the event type

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -9,10 +9,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTabsModule } from '@angular/material/tabs';
 import { IndividualService } from '../services/individual.service';
 import { RelationshipService } from '../../relationship/services/relationship.service';
 import { Individual } from '../models/individual.model';
 import { Relationship } from '../../relationship/models/relationship.model';
+import { MediaUploaderComponent } from '../../media/media-uploader/media-uploader.component';
+import { MediaGalleryComponent } from '../../media/media-gallery/media-gallery.component';
+import { Media } from '../../media/models/media.model';
 
 @Component({
   selector: 'app-individual-detail',
@@ -27,12 +31,17 @@ import { Relationship } from '../../relationship/models/relationship.model';
     MatProgressSpinnerModule,
     MatDividerModule,
     MatSnackBarModule,
-    MatDialogModule
+    MatDialogModule,
+    MatTabsModule,
+    MediaUploaderComponent,
+    MediaGalleryComponent
   ],
   templateUrl: './individual-detail.component.html',
   styleUrl: './individual-detail.component.scss'
 })
 export class IndividualDetailComponent implements OnInit {
+  @ViewChild(MediaGalleryComponent) mediaGallery?: MediaGalleryComponent;
+
   individual?: Individual;
   parents: Relationship[] = [];
   children: Relationship[] = [];
@@ -160,5 +169,15 @@ export class IndividualDetailComponent implements OnInit {
 
   back(): void {
     this.router.navigate(['/trees', this.treeId, 'individuals']);
+  }
+
+  /**
+   * Handle media upload completion
+   */
+  onMediaUploaded(media: Media): void {
+    // Refresh the gallery when a new media is uploaded
+    if (this.mediaGallery) {
+      this.mediaGallery.refresh();
+    }
   }
 }

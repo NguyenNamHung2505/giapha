@@ -42,6 +42,14 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
     List<Media> findByIndividualId(UUID individualId);
 
     /**
+     * Find media by individual ID with eager loading of individual and tree
+     * @param individualId the individual ID
+     * @return list of media
+     */
+    @Query("SELECT DISTINCT m FROM Media m JOIN FETCH m.individual i JOIN FETCH i.tree WHERE i.id = :individualId")
+    List<Media> findByIndividualIdWithIndividual(@Param("individualId") UUID individualId);
+
+    /**
      * Find media by type for an individual
      * @param individual the individual
      * @param type the media type
@@ -64,6 +72,13 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
      * @return count of media
      */
     long countByIndividual(Individual individual);
+
+    /**
+     * Count media files by individual ID
+     * @param individualId the individual ID
+     * @return count of media
+     */
+    long countByIndividualId(UUID individualId);
 
     /**
      * Calculate total storage used by a tree

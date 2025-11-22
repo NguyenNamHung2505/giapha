@@ -32,6 +32,8 @@ public class IndividualService {
     private final IndividualRepository individualRepository;
     private final FamilyTreeRepository treeRepository;
     private final UserRepository userRepository;
+    private final com.familytree.repository.MediaRepository mediaRepository;
+    private final com.familytree.repository.EventRepository eventRepository;
 
     /**
      * Create a new individual in a tree
@@ -73,10 +75,11 @@ public class IndividualService {
      * Get an individual by ID
      */
     @Transactional(readOnly = true)
-    public IndividualResponse getIndividual(UUID individualId, String userEmail) {
+    public IndividualResponse getIndividual(UUID treeId, UUID individualId, String userEmail) {
         log.info("Fetching individual {} for user '{}'", individualId, userEmail);
 
-        Individual individual = individualRepository.findById(individualId)
+        // Get individual with tree eagerly loaded
+        Individual individual = individualRepository.findByIdWithTree(individualId)
                 .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
 
         // Check authorization
@@ -102,6 +105,7 @@ public class IndividualService {
             throw new UnauthorizedException("You do not have access to this tree");
         }
 
+        // Use regular query - tree will be loaded when accessed within transaction
         Page<Individual> individuals = individualRepository.findByTree(tree, pageable);
 
         return individuals.map(this::convertToResponse);
@@ -199,6 +203,10 @@ public class IndividualService {
     private IndividualResponse convertToResponse(Individual individual) {
         String fullName = buildFullName(individual);
 
+        // Use count queries to avoid loading collections
+        long mediaCount = mediaRepository.countByIndividualId(individual.getId());
+        long eventCount = eventRepository.countByIndividualId(individual.getId());
+
         return IndividualResponse.builder()
                 .id(individual.getId())
                 .treeId(individual.getTree().getId())
@@ -213,8 +221,8 @@ public class IndividualService {
                 .deathDate(individual.getDeathDate())
                 .deathPlace(individual.getDeathPlace())
                 .biography(individual.getBiography())
-                .mediaCount(individual.getMediaFiles() != null ? individual.getMediaFiles().size() : 0)
-                .eventCount(individual.getEvents() != null ? individual.getEvents().size() : 0)
+                .mediaCount((int) mediaCount)
+                .eventCount((int) eventCount)
                 .createdAt(individual.getCreatedAt())
                 .updatedAt(individual.getUpdatedAt())
                 .build();

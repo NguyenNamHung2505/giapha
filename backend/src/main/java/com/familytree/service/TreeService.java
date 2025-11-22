@@ -29,6 +29,8 @@ public class TreeService {
 
     private final FamilyTreeRepository treeRepository;
     private final UserRepository userRepository;
+    private final com.familytree.repository.IndividualRepository individualRepository;
+    private final com.familytree.repository.RelationshipRepository relationshipRepository;
 
     /**
      * Create a new family tree
@@ -147,6 +149,10 @@ public class TreeService {
      * Convert FamilyTree entity to TreeResponse DTO
      */
     private TreeResponse convertToResponse(FamilyTree tree) {
+        // Use count queries to avoid loading collections
+        long individualsCount = individualRepository.countByTreeId(tree.getId());
+        long relationshipsCount = relationshipRepository.countByTreeId(tree.getId());
+
         return TreeResponse.builder()
                 .id(tree.getId())
                 .name(tree.getName())
@@ -154,8 +160,8 @@ public class TreeService {
                 .ownerId(tree.getOwner().getId())
                 .ownerName(tree.getOwner().getName())
                 .ownerEmail(tree.getOwner().getEmail())
-                .individualsCount(tree.getIndividuals() != null ? tree.getIndividuals().size() : 0)
-                .relationshipsCount(tree.getRelationships() != null ? tree.getRelationships().size() : 0)
+                .individualsCount((int) individualsCount)
+                .relationshipsCount((int) relationshipsCount)
                 .createdAt(tree.getCreatedAt())
                 .updatedAt(tree.getUpdatedAt())
                 .build();

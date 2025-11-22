@@ -1,5 +1,6 @@
 package com.familytree.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,6 +43,7 @@ public class Individual {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tree_id", nullable = false)
+    @JsonIgnoreProperties({"individuals", "permissions", "relationships", "owner"})
     private FamilyTree tree;
 
     @Size(max = 255)
@@ -88,10 +90,12 @@ public class Individual {
     // Relationships
     @OneToMany(mappedBy = "individual", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnoreProperties({"individual"})
     private Set<Media> mediaFiles = new HashSet<>();
 
     @OneToMany(mappedBy = "individual", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnoreProperties({"individual"})
     private Set<Event> events = new HashSet<>();
 
     // Note: Relationships are handled through the Relationship entity

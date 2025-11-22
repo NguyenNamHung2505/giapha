@@ -149,11 +149,15 @@
   }
 }
 
-.relationships-card {
+.tabs-card {
   mat-card-title {
     font-size: 1.5rem;
     font-weight: 500;
     margin-bottom: 16px;
+  }
+
+  .tab-content {
+    padding: 24px 0;
   }
 
   .relationship-section {

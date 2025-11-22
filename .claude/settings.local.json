@@ -6,7 +6,8 @@
       "Bash(mvn clean install:*)",
       "Bash(java -version:*)",
       "Bash(javac:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(docker-compose up:*)"
     ],
     "deny": [],
     "ask": []

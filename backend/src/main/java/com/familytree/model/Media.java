@@ -1,5 +1,6 @@
 package com.familytree.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +39,7 @@ public class Media {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "individual_id", nullable = false)
+    @JsonIgnoreProperties({"tree", "mediaFiles", "events"})
     private Individual individual;
 
     @Enumerated(EnumType.STRING)
