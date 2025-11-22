@@ -1,0 +1,45 @@
+<div class="tree-visualization-container">
+  <!-- Toolbar -->
+  <mat-toolbar class="tree-toolbar">
+    <button mat-icon-button (click)="back()" matTooltip="Back to list">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="toolbar-spacer"></span>
+    <span class="toolbar-title">Family Tree Visualization</span>
+    <span class="toolbar-spacer"></span>
+
+    <!-- Zoom Controls -->
+    <button mat-icon-button (click)="zoomIn()" matTooltip="Zoom In">
+      <mat-icon>zoom_in</mat-icon>
+    </button>
+    <button mat-icon-button (click)="zoomOut()" matTooltip="Zoom Out">
+      <mat-icon>zoom_out</mat-icon>
+    </button>
+    <button mat-icon-button (click)="resetZoom()" matTooltip="Reset View">
+      <mat-icon>center_focus_strong</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Loading family tree...</p>
+  </div>
+
+  <!-- Tree Container -->
+  <div #treeContainer class="tree-container" *ngIf="!loading"></div>
+
+  <!-- Instructions -->
+  <div class="instructions" *ngIf="!loading">
+    <mat-card>
+      <mat-card-content>
+        <p><strong>Navigation:</strong></p>
+        <ul>
+          <li>Click and drag to pan</li>
+          <li>Scroll to zoom in/out</li>
+          <li>Click on a person to view details</li>
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

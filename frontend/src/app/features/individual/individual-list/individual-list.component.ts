@@ -134,4 +134,8 @@ export class IndividualListComponent implements OnInit {
   clearSearch(): void {
     this.searchControl.setValue('');
   }
+
+  viewTreeVisualization(): void {
+    this.router.navigate(['/trees', this.treeId, 'visualize']);
+  }
 }

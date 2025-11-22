@@ -29,6 +29,11 @@
     }
   }
 
+  .action-buttons {
+    display: flex;
+    gap: 12px;
+  }
+
   button {
     mat-icon {
       margin-right: 8px;

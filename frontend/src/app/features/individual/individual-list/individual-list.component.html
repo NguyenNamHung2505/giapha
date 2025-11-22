@@ -9,10 +9,16 @@
         <p class="tree-name" *ngIf="treeName">{{ treeName }}</p>
       </div>
     </div>
-    <button mat-raised-button color="primary" (click)="createIndividual()">
-      <mat-icon>person_add</mat-icon>
-      Add Individual
-    </button>
+    <div class="action-buttons">
+      <button mat-raised-button color="accent" (click)="viewTreeVisualization()">
+        <mat-icon>account_tree</mat-icon>
+        View Tree
+      </button>
+      <button mat-raised-button color="primary" (click)="createIndividual()">
+        <mat-icon>person_add</mat-icon>
+        Add Individual
+      </button>
+    </div>
   </div>
 
   <mat-card class="individuals-card">
