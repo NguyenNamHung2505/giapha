@@ -1,0 +1,249 @@
+package com.familytree.service;
+
+import com.familytree.dto.individual.CreateIndividualRequest;
+import com.familytree.dto.individual.IndividualResponse;
+import com.familytree.dto.individual.UpdateIndividualRequest;
+import com.familytree.exception.ResourceNotFoundException;
+import com.familytree.exception.UnauthorizedException;
+import com.familytree.model.FamilyTree;
+import com.familytree.model.Individual;
+import com.familytree.model.User;
+import com.familytree.repository.FamilyTreeRepository;
+import com.familytree.repository.IndividualRepository;
+import com.familytree.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+
+/**
+ * Service for managing individuals in family trees
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
+public class IndividualService {
+
+    private final IndividualRepository individualRepository;
+    private final FamilyTreeRepository treeRepository;
+    private final UserRepository userRepository;
+
+    /**
+     * Create a new individual in a tree
+     */
+    public IndividualResponse createIndividual(UUID treeId, CreateIndividualRequest request, String userEmail) {
+        log.info("Creating individual in tree {} for user '{}'", treeId, userEmail);
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        FamilyTree tree = treeRepository.findById(treeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tree not found with ID: " + treeId));
+
+        // Check authorization
+        if (!hasAccess(tree, userEmail)) {
+            throw new UnauthorizedException("You do not have access to this tree");
+        }
+
+        Individual individual = Individual.builder()
+                .tree(tree)
+                .givenName(request.getGivenName())
+                .surname(request.getSurname())
+                .suffix(request.getSuffix())
+                .gender(request.getGender())
+                .birthDate(request.getBirthDate())
+                .birthPlace(request.getBirthPlace())
+                .deathDate(request.getDeathDate())
+                .deathPlace(request.getDeathPlace())
+                .biography(request.getBiography())
+                .build();
+
+        Individual savedIndividual = individualRepository.save(individual);
+        log.info("Individual created with ID: {}", savedIndividual.getId());
+
+        return convertToResponse(savedIndividual);
+    }
+
+    /**
+     * Get an individual by ID
+     */
+    @Transactional(readOnly = true)
+    public IndividualResponse getIndividual(UUID individualId, String userEmail) {
+        log.info("Fetching individual {} for user '{}'", individualId, userEmail);
+
+        Individual individual = individualRepository.findById(individualId)
+                .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
+
+        // Check authorization
+        if (!hasAccess(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("You do not have access to this tree");
+        }
+
+        return convertToResponse(individual);
+    }
+
+    /**
+     * List all individuals in a tree
+     */
+    @Transactional(readOnly = true)
+    public Page<IndividualResponse> listIndividuals(UUID treeId, String userEmail, Pageable pageable) {
+        log.info("Listing individuals in tree {} for user '{}'", treeId, userEmail);
+
+        FamilyTree tree = treeRepository.findById(treeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tree not found with ID: " + treeId));
+
+        // Check authorization
+        if (!hasAccess(tree, userEmail)) {
+            throw new UnauthorizedException("You do not have access to this tree");
+        }
+
+        Page<Individual> individuals = individualRepository.findByTree(tree, pageable);
+
+        return individuals.map(this::convertToResponse);
+    }
+
+    /**
+     * Search individuals by name
+     */
+    @Transactional(readOnly = true)
+    public Page<IndividualResponse> searchIndividuals(UUID treeId, String searchTerm, String userEmail, Pageable pageable) {
+        log.info("Searching individuals in tree {} with term '{}' for user '{}'", treeId, searchTerm, userEmail);
+
+        FamilyTree tree = treeRepository.findById(treeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Tree not found with ID: " + treeId));
+
+        // Check authorization
+        if (!hasAccess(tree, userEmail)) {
+            throw new UnauthorizedException("You do not have access to this tree");
+        }
+
+        Page<Individual> individuals = individualRepository.searchByName(treeId, searchTerm, pageable);
+
+        return individuals.map(this::convertToResponse);
+    }
+
+    /**
+     * Update an individual
+     */
+    public IndividualResponse updateIndividual(UUID individualId, UpdateIndividualRequest request, String userEmail) {
+        log.info("Updating individual {} for user '{}'", individualId, userEmail);
+
+        Individual individual = individualRepository.findById(individualId)
+                .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
+
+        // Check authorization - only owner can update
+        if (!isOwner(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner can update individuals");
+        }
+
+        individual.setGivenName(request.getGivenName());
+        individual.setSurname(request.getSurname());
+        individual.setSuffix(request.getSuffix());
+        individual.setGender(request.getGender());
+        individual.setBirthDate(request.getBirthDate());
+        individual.setBirthPlace(request.getBirthPlace());
+        individual.setDeathDate(request.getDeathDate());
+        individual.setDeathPlace(request.getDeathPlace());
+        individual.setBiography(request.getBiography());
+
+        Individual updatedIndividual = individualRepository.save(individual);
+        log.info("Individual {} updated successfully", individualId);
+
+        return convertToResponse(updatedIndividual);
+    }
+
+    /**
+     * Delete an individual
+     */
+    public void deleteIndividual(UUID individualId, String userEmail) {
+        log.info("Deleting individual {} for user '{}'", individualId, userEmail);
+
+        Individual individual = individualRepository.findById(individualId)
+                .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
+
+        // Check authorization - only owner can delete
+        if (!isOwner(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner can delete individuals");
+        }
+
+        individualRepository.delete(individual);
+        log.info("Individual {} deleted successfully", individualId);
+    }
+
+    /**
+     * Check if user has access to the tree (owner or has permission)
+     */
+    private boolean hasAccess(FamilyTree tree, String userEmail) {
+        if (tree.getOwner().getEmail().equals(userEmail)) {
+            return true;
+        }
+        return tree.getPermissions().stream()
+                .anyMatch(p -> p.getUser().getEmail().equals(userEmail));
+    }
+
+    /**
+     * Check if user is the owner of the tree
+     */
+    private boolean isOwner(FamilyTree tree, String userEmail) {
+        return tree.getOwner().getEmail().equals(userEmail);
+    }
+
+    /**
+     * Convert Individual entity to IndividualResponse DTO
+     */
+    private IndividualResponse convertToResponse(Individual individual) {
+        String fullName = buildFullName(individual);
+
+        return IndividualResponse.builder()
+                .id(individual.getId())
+                .treeId(individual.getTree().getId())
+                .treeName(individual.getTree().getName())
+                .givenName(individual.getGivenName())
+                .surname(individual.getSurname())
+                .suffix(individual.getSuffix())
+                .fullName(fullName)
+                .gender(individual.getGender())
+                .birthDate(individual.getBirthDate())
+                .birthPlace(individual.getBirthPlace())
+                .deathDate(individual.getDeathDate())
+                .deathPlace(individual.getDeathPlace())
+                .biography(individual.getBiography())
+                .mediaCount(individual.getMediaFiles() != null ? individual.getMediaFiles().size() : 0)
+                .eventCount(individual.getEvents() != null ? individual.getEvents().size() : 0)
+                .createdAt(individual.getCreatedAt())
+                .updatedAt(individual.getUpdatedAt())
+                .build();
+    }
+
+    /**
+     * Build full name from individual parts
+     */
+    private String buildFullName(Individual individual) {
+        StringBuilder fullName = new StringBuilder();
+
+        if (individual.getGivenName() != null && !individual.getGivenName().isEmpty()) {
+            fullName.append(individual.getGivenName());
+        }
+
+        if (individual.getSurname() != null && !individual.getSurname().isEmpty()) {
+            if (fullName.length() > 0) {
+                fullName.append(" ");
+            }
+            fullName.append(individual.getSurname());
+        }
+
+        if (individual.getSuffix() != null && !individual.getSuffix().isEmpty()) {
+            if (fullName.length() > 0) {
+                fullName.append(" ");
+            }
+            fullName.append(individual.getSuffix());
+        }
+
+        return fullName.length() > 0 ? fullName.toString() : "Unknown";
+    }
+}
