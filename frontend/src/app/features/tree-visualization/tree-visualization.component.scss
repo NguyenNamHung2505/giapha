@@ -86,23 +86,77 @@
 /* D3 Tree Styling */
 ::ng-deep {
   .node {
-    transition: transform 0.3s ease;
+    cursor: move !important;
+    user-select: none;
+
+    &:active {
+      cursor: grabbing !important;
+    }
 
     &:hover {
       circle {
         filter: brightness(1.1);
         stroke-width: 4;
       }
+
+      image {
+        filter: brightness(1.05);
+      }
+    }
+
+    // Avatar images
+    image {
+      transition: filter 0.2s ease;
+      pointer-events: none; // Allow drag to work through image
+    }
+
+    // Border circle
+    circle {
+      transition: stroke-width 0.2s ease, filter 0.2s ease;
+    }
+  }
+
+  .spouse-node {
+    cursor: move !important;
+    user-select: none;
+
+    &:active {
+      cursor: grabbing !important;
+    }
+
+    &:hover {
+      circle {
+        filter: brightness(1.1);
+        stroke-width: 4;
+      }
+
+      image {
+        filter: brightness(1.05);
+      }
+    }
+
+    image {
+      transition: filter 0.2s ease;
+      pointer-events: none;
+    }
+
+    circle {
+      transition: stroke-width 0.2s ease, filter 0.2s ease;
     }
   }
 
   .link {
     transition: stroke 0.3s ease;
+    pointer-events: none; // Links don't block dragging
 
     &:hover {
       stroke: #3f51b5 !important;
       stroke-width: 3 !important;
     }
+  }
+
+  .spouse-link {
+    pointer-events: none;
   }
 }
 

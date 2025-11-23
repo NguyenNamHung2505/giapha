@@ -323,10 +323,37 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
     const root = d3.hierarchy(treeData);
     const treeNodes = treeLayout(root);
 
+    // Store node positions for dragging
+    const nodePositions = new Map<string, {x: number, y: number}>();
+    treeNodes.descendants().forEach((d: any) => {
+      nodePositions.set(d.data.individual.id, { x: d.x, y: d.y });
+    });
+
     // Center the tree
     const translateX = 100;
     const translateY = 50;
     const spouseOffset = 80; // Horizontal distance between spouses
+
+    // Create drag behavior
+    const dragBehavior = d3.drag()
+      .on('start', (event: any, d: any) => {
+        d3.select(event.sourceEvent.target.parentNode).raise();
+      })
+      .on('drag', (event: any, d: any) => {
+        // Update position
+        const newX = event.x - translateX;
+        const newY = event.y - translateY;
+
+        // Store new position
+        nodePositions.set(d.data.individual.id, { x: newX, y: newY });
+
+        // Update node position
+        d3.select(event.sourceEvent.target.parentNode)
+          .attr('transform', `translate(${event.x},${event.y})`);
+
+        // Update connected links
+        this.updateLinks(d.data.individual.id, event.x, event.y);
+      });
 
     // Draw parent-child links
     this.g.selectAll('.link')
@@ -369,25 +396,53 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
             .on('click', () => {
               this.onNodeClick(spouse);
             })
-            .style('cursor', 'pointer');
+            .style('cursor', 'pointer')
+            .call(dragBehavior);
 
-          spouseNode.append('circle')
-            .attr('r', 30)
-            .attr('fill', () => {
-              if (spouse.gender === 'MALE') return '#4A90E2';
-              if (spouse.gender === 'FEMALE') return '#E294A9';
-              return '#9B9B9B';
-            })
-            .attr('stroke', '#fff')
-            .attr('stroke-width', 3);
+          // Add avatar image or colored circle
+          if (spouse.profilePictureUrl) {
+            // Use clipPath to make image circular
+            spouseNode.append('defs')
+              .append('clipPath')
+              .attr('id', `clip-spouse-${spouse.id}`)
+              .append('circle')
+              .attr('r', 30);
 
-          spouseNode.append('text')
-            .attr('dy', 5)
-            .attr('text-anchor', 'middle')
-            .attr('fill', 'white')
-            .attr('font-size', '14px')
-            .attr('font-weight', 'bold')
-            .text(this.getInitials(spouse));
+            spouseNode.append('image')
+              .attr('xlink:href', spouse.profilePictureUrl)
+              .attr('x', -30)
+              .attr('y', -30)
+              .attr('width', 60)
+              .attr('height', 60)
+              .attr('clip-path', `url(#clip-spouse-${spouse.id})`)
+              .attr('preserveAspectRatio', 'xMidYMid slice');
+
+            // Add border around image
+            spouseNode.append('circle')
+              .attr('r', 30)
+              .attr('fill', 'none')
+              .attr('stroke', '#fff')
+              .attr('stroke-width', 3);
+          } else {
+            // Fallback to colored circle with initials
+            spouseNode.append('circle')
+              .attr('r', 30)
+              .attr('fill', () => {
+                if (spouse.gender === 'MALE') return '#4A90E2';
+                if (spouse.gender === 'FEMALE') return '#E294A9';
+                return '#9B9B9B';
+              })
+              .attr('stroke', '#fff')
+              .attr('stroke-width', 3);
+
+            spouseNode.append('text')
+              .attr('dy', 5)
+              .attr('text-anchor', 'middle')
+              .attr('fill', 'white')
+              .attr('font-size', '14px')
+              .attr('font-weight', 'bold')
+              .text(this.getInitials(spouse));
+          }
 
           spouseNode.append('text')
             .attr('dy', 50)
@@ -413,31 +468,65 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
       .append('g')
       .attr('class', 'node')
       .attr('transform', (d: any) => `translate(${d.x + translateX},${d.y + translateY})`)
+      .attr('data-id', (d: any) => d.data.individual.id)
       .on('click', (event: any, d: any) => {
+        // Prevent click event when dragging
+        if (event.defaultPrevented) return;
         this.onNodeClick(d.data.individual);
       })
-      .style('cursor', 'pointer');
+      .style('cursor', 'move')
+      .call(dragBehavior);
 
-    // Add circles for nodes
-    nodes.append('circle')
-      .attr('r', 30)
-      .attr('fill', (d: any) => {
-        const gender = d.data.individual.gender;
-        if (gender === 'MALE') return '#4A90E2';
-        if (gender === 'FEMALE') return '#E294A9';
-        return '#9B9B9B';
-      })
-      .attr('stroke', '#fff')
-      .attr('stroke-width', 3);
+    // Add avatar images or circles for nodes
+    nodes.each((d: any, i: number, nodeElements: any) => {
+      const node = d3.select(nodeElements[i]);
+      const individual = d.data.individual;
 
-    // Add initials text
-    nodes.append('text')
-      .attr('dy', 5)
-      .attr('text-anchor', 'middle')
-      .attr('fill', 'white')
-      .attr('font-size', '14px')
-      .attr('font-weight', 'bold')
-      .text((d: any) => this.getInitials(d.data.individual));
+      if (individual.profilePictureUrl) {
+        // Use clipPath to make image circular
+        node.append('defs')
+          .append('clipPath')
+          .attr('id', `clip-${individual.id}`)
+          .append('circle')
+          .attr('r', 30);
+
+        node.append('image')
+          .attr('xlink:href', individual.profilePictureUrl)
+          .attr('x', -30)
+          .attr('y', -30)
+          .attr('width', 60)
+          .attr('height', 60)
+          .attr('clip-path', `url(#clip-${individual.id})`)
+          .attr('preserveAspectRatio', 'xMidYMid slice');
+
+        // Add border around image
+        node.append('circle')
+          .attr('r', 30)
+          .attr('fill', 'none')
+          .attr('stroke', '#fff')
+          .attr('stroke-width', 3);
+      } else {
+        // Fallback to colored circle with initials
+        node.append('circle')
+          .attr('r', 30)
+          .attr('fill', () => {
+            const gender = individual.gender;
+            if (gender === 'MALE') return '#4A90E2';
+            if (gender === 'FEMALE') return '#E294A9';
+            return '#9B9B9B';
+          })
+          .attr('stroke', '#fff')
+          .attr('stroke-width', 3);
+
+        node.append('text')
+          .attr('dy', 5)
+          .attr('text-anchor', 'middle')
+          .attr('fill', 'white')
+          .attr('font-size', '14px')
+          .attr('font-weight', 'bold')
+          .text(this.getInitials(individual));
+      }
+    });
 
     // Add names below nodes
     nodes.append('text')
@@ -488,5 +577,36 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
 
   back(): void {
     this.router.navigate(['/trees', this.treeId, 'individuals']);
+  }
+
+  /**
+   * Update link positions when a node is dragged
+   */
+  private updateLinks(individualId: string, newX: number, newY: number): void {
+    // Update parent-child links
+    this.g.selectAll('.link').each((d: any, i: number, links: any) => {
+      const link = d3.select(links[i]);
+      const sourceId = d.source.data.individual.id;
+      const targetId = d.target.data.individual.id;
+
+      if (sourceId === individualId || targetId === individualId) {
+        const sourceX = sourceId === individualId ? newX : d.source.x + 100;
+        const sourceY = sourceId === individualId ? newY : d.source.y + 50;
+        const targetX = targetId === individualId ? newX : d.target.x + 100;
+        const targetY = targetId === individualId ? newY : d.target.y + 50;
+
+        link.attr('d', `M${sourceX},${sourceY}
+                        C${sourceX},${(sourceY + targetY) / 2}
+                         ${targetX},${(sourceY + targetY) / 2}
+                         ${targetX},${targetY}`);
+      }
+    });
+
+    // Update spouse links
+    this.g.selectAll('.spouse-link').each((d: any, i: number, links: any) => {
+      const link = d3.select(links[i]);
+      // You might need to store spouse link data separately to update them
+      // For now, this is a placeholder - spouse links will remain static
+    });
   }
 }
