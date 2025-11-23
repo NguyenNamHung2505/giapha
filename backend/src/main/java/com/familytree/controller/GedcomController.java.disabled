@@ -5,7 +5,6 @@ import com.familytree.security.UserPrincipal;
 import com.familytree.service.GedcomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.gedcom4j.writer.GedcomWriterException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -117,9 +116,6 @@ public class GedcomController {
         } catch (IllegalArgumentException e) {
             log.error("Invalid tree ID: {}", treeId);
             return ResponseEntity.badRequest().build();
-        } catch (GedcomWriterException e) {
-            log.error("Error writing GEDCOM file", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         } catch (IOException e) {
             log.error("IO error during GEDCOM export", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -147,8 +143,21 @@ public class GedcomController {
     }
 
     /**
-     * DTO for GEDCOM information
+     * DTO for GEDCOM information (Java 11 compatible)
      */
-    public record GedcomInfo(String version, String application, String supportedFeatures) {
+    public static class GedcomInfo {
+        private final String version;
+        private final String application;
+        private final String supportedFeatures;
+
+        public GedcomInfo(String version, String application, String supportedFeatures) {
+            this.version = version;
+            this.application = application;
+            this.supportedFeatures = supportedFeatures;
+        }
+
+        public String getVersion() { return version; }
+        public String getApplication() { return application; }
+        public String getSupportedFeatures() { return supportedFeatures; }
     }
 }

@@ -20,7 +20,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <gedcom4j.version>4.1.4</gedcom4j.version>
+        <gedcom4j.version>4.0.1</gedcom4j.version>
         <minio.version>8.5.7</minio.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <lombok.version>1.18.30</lombok.version>
@@ -103,8 +103,9 @@
             <version>${minio.version}</version>
         </dependency>
 
-        <!-- GEDCOM Parsing - TODO: Add in Phase 5 when implementing GEDCOM import/export -->
-        <!-- Will research and select appropriate library during implementation -->
+        <!-- GEDCOM Parsing - Temporarily disabled due to API compatibility issues -->
+        <!-- gedcom4j 4.0.1 has incompatible API compared to newer versions -->
+        <!-- TODO: Research alternative GEDCOM libraries or rewrite for 4.0.1 API -->
         <!--
         <dependency>
             <groupId>org.gedcom4j</groupId>
