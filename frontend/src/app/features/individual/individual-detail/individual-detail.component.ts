@@ -17,6 +17,7 @@ import { Relationship } from '../../relationship/models/relationship.model';
 import { MediaUploaderComponent } from '../../media/media-uploader/media-uploader.component';
 import { MediaGalleryComponent } from '../../media/media-gallery/media-gallery.component';
 import { Media } from '../../media/models/media.model';
+import { RelationshipFormComponent } from '../../relationship/relationship-form/relationship-form.component';
 
 @Component({
   selector: 'app-individual-detail',
@@ -179,5 +180,47 @@ export class IndividualDetailComponent implements OnInit {
     if (this.mediaGallery) {
       this.mediaGallery.refresh();
     }
+  }
+
+  /**
+   * Open dialog to add a new relationship
+   */
+  addRelationship(): void {
+    const dialogRef = this.dialog.open(RelationshipFormComponent, {
+      width: '500px',
+      data: {
+        treeId: this.treeId,
+        individualId: this.individualId,
+        individualName: this.individual?.fullName || 'this person'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // Relationship was created, reload relationships
+        this.loadRelationships();
+        this.snackBar.open('Relationship added successfully', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  /**
+   * Delete a relationship
+   */
+  deleteRelationship(relationshipId: string, type: string): void {
+    if (!confirm(`Are you sure you want to delete this ${type.toLowerCase()} relationship?`)) {
+      return;
+    }
+
+    this.relationshipService.deleteRelationship(relationshipId).subscribe({
+      next: () => {
+        this.loadRelationships();
+        this.snackBar.open('Relationship deleted', 'Close', { duration: 2000 });
+      },
+      error: (error) => {
+        console.error('Error deleting relationship:', error);
+        this.snackBar.open('Failed to delete relationship', 'Close', { duration: 3000 });
+      }
+    });
   }
 }

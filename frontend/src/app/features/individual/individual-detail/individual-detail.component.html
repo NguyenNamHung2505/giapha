@@ -89,17 +89,33 @@
         <!-- Relationships Tab -->
         <mat-tab label="Relationships">
           <div class="tab-content">
+            <!-- Add Relationship Button -->
+            <div class="relationship-header">
+              <button mat-raised-button color="primary" (click)="addRelationship()">
+                <mat-icon>add</mat-icon>
+                Add Relationship
+              </button>
+            </div>
+
             <!-- Parents -->
             <div class="relationship-section" *ngIf="parents.length > 0">
               <h3><mat-icon>supervisor_account</mat-icon> Parents</h3>
               <div class="relationship-list">
                 <mat-chip-listbox>
-                  <mat-chip *ngFor="let rel of parents" (click)="goToIndividual(rel.individual1.id)">
-                    <span>{{ rel.individual1.fullName }}</span>
+                  <mat-chip *ngFor="let rel of parents">
+                    <span (click)="goToIndividual(rel.individual1.id)" style="cursor: pointer;">
+                      {{ rel.individual1.fullName }}
+                    </span>
                     <span class="dates" *ngIf="rel.individual1.birthDate || rel.individual1.deathDate">
                       ({{ rel.individual1.birthDate ? (rel.individual1.birthDate | date: 'yyyy') : '?' }} -
                        {{ rel.individual1.deathDate ? (rel.individual1.deathDate | date: 'yyyy') : 'present' }})
                     </span>
+                    <button mat-icon-button 
+                            matChipRemove 
+                            (click)="deleteRelationship(rel.id, 'parent')"
+                            matTooltip="Delete relationship">
+                      <mat-icon>close</mat-icon>
+                    </button>
                   </mat-chip>
                 </mat-chip-listbox>
               </div>
@@ -112,13 +128,22 @@
               <h3><mat-icon>favorite</mat-icon> Spouses & Partners</h3>
               <div class="relationship-list">
                 <mat-chip-listbox>
-                  <mat-chip *ngFor="let rel of spouses" (click)="goToIndividual(rel.individual1.id === individualId ? rel.individual2.id : rel.individual1.id)">
-                    <span>{{ rel.individual1.id === individualId ? rel.individual2.fullName : rel.individual1.fullName }}</span>
+                  <mat-chip *ngFor="let rel of spouses">
+                    <span (click)="goToIndividual(rel.individual1.id === individualId ? rel.individual2.id : rel.individual1.id)" 
+                          style="cursor: pointer;">
+                      {{ rel.individual1.id === individualId ? rel.individual2.fullName : rel.individual1.fullName }}
+                    </span>
                     <span class="relationship-type">{{ rel.type }}</span>
                     <span class="dates" *ngIf="rel.startDate || rel.endDate">
                       ({{ rel.startDate ? (rel.startDate | date: 'yyyy') : '?' }} -
                        {{ rel.endDate ? (rel.endDate | date: 'yyyy') : 'present' }})
                     </span>
+                    <button mat-icon-button 
+                            matChipRemove 
+                            (click)="deleteRelationship(rel.id, rel.type)"
+                            matTooltip="Delete relationship">
+                      <mat-icon>close</mat-icon>
+                    </button>
                   </mat-chip>
                 </mat-chip-listbox>
               </div>
@@ -131,12 +156,20 @@
               <h3><mat-icon>child_care</mat-icon> Children</h3>
               <div class="relationship-list">
                 <mat-chip-listbox>
-                  <mat-chip *ngFor="let rel of children" (click)="goToIndividual(rel.individual2.id)">
-                    <span>{{ rel.individual2.fullName }}</span>
+                  <mat-chip *ngFor="let rel of children">
+                    <span (click)="goToIndividual(rel.individual2.id)" style="cursor: pointer;">
+                      {{ rel.individual2.fullName }}
+                    </span>
                     <span class="dates" *ngIf="rel.individual2.birthDate || rel.individual2.deathDate">
                       ({{ rel.individual2.birthDate ? (rel.individual2.birthDate | date: 'yyyy') : '?' }} -
                        {{ rel.individual2.deathDate ? (rel.individual2.deathDate | date: 'yyyy') : 'present' }})
                     </span>
+                    <button mat-icon-button 
+                            matChipRemove 
+                            (click)="deleteRelationship(rel.id, 'child')"
+                            matTooltip="Delete relationship">
+                      <mat-icon>close</mat-icon>
+                    </button>
                   </mat-chip>
                 </mat-chip-listbox>
               </div>
