@@ -1,0 +1,77 @@
+<div class="search-bar-container">
+  <div class="search-input-wrapper">
+    <mat-icon class="search-icon">search</mat-icon>
+
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search individuals by name or place..."
+      [formControl]="searchControl"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+      autocomplete="off"
+    />
+
+    <button
+      *ngIf="searchControl.value"
+      mat-icon-button
+      class="clear-button"
+      (click)="clearSearch()"
+      type="button"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+
+    <mat-spinner
+      *ngIf="isLoading"
+      diameter="20"
+      class="search-spinner"
+    ></mat-spinner>
+  </div>
+
+  <!-- Search Results Dropdown -->
+  <div class="search-results" *ngIf="showResults && searchResults.length > 0">
+    <div class="search-results-header">
+      <span class="results-count">{{ searchResults.length }} result{{ searchResults.length !== 1 ? 's' : '' }}</span>
+    </div>
+
+    <div class="search-results-list">
+      <div
+        *ngFor="let result of searchResults"
+        class="search-result-item"
+        (click)="onResultClick(result)"
+        tabindex="0"
+      >
+        <div class="result-main">
+          <div class="result-name">{{ result.fullName }}</div>
+          <div class="result-tree">
+            <mat-icon class="tree-icon">account_tree</mat-icon>
+            <span>{{ result.treeName }}</span>
+          </div>
+        </div>
+
+        <div class="result-details" *ngIf="result.birthDate || result.birthPlace || result.deathDate || result.deathPlace">
+          <div class="result-dates" *ngIf="result.birthDate || result.deathDate">
+            <span *ngIf="result.birthDate">b. {{ result.birthDate | date:'yyyy' }}</span>
+            <span *ngIf="result.birthDate && result.deathDate"> - </span>
+            <span *ngIf="result.deathDate">d. {{ result.deathDate | date:'yyyy' }}</span>
+          </div>
+          <div class="result-places" *ngIf="result.birthPlace || result.deathPlace">
+            <mat-icon class="place-icon">place</mat-icon>
+            <span *ngIf="result.birthPlace">{{ result.birthPlace }}</span>
+            <span *ngIf="result.birthPlace && result.deathPlace"> / </span>
+            <span *ngIf="result.deathPlace">{{ result.deathPlace }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results Message -->
+  <div class="search-results" *ngIf="showResults && searchResults.length === 0 && !isLoading && searchControl.value && searchControl.value.length >= 2">
+    <div class="no-results">
+      <mat-icon>search_off</mat-icon>
+      <p>No results found for "{{ searchControl.value }}"</p>
+    </div>
+  </div>
+</div>
