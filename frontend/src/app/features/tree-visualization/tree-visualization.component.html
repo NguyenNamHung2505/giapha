@@ -8,7 +8,10 @@
     <span class="toolbar-title">Family Tree Visualization</span>
     <span class="toolbar-spacer"></span>
 
-    <!-- Zoom Controls -->
+    <!-- Controls -->
+    <button mat-icon-button (click)="refresh()" matTooltip="Refresh Tree">
+      <mat-icon>refresh</mat-icon>
+    </button>
     <button mat-icon-button (click)="zoomIn()" matTooltip="Zoom In">
       <mat-icon>zoom_in</mat-icon>
     </button>
@@ -38,6 +41,8 @@
           <li>Click and drag to pan</li>
           <li>Scroll to zoom in/out</li>
           <li>Click on a person to view details</li>
+          <li>Pink dashed lines show spouse/partner relationships</li>
+          <li>Click refresh after adding new relationships</li>
         </ul>
       </mat-card-content>
     </mat-card>
