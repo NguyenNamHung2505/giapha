@@ -1,0 +1,123 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon>cloud_upload</mat-icon>
+      Upload Media
+    </mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Drag & Drop Zone -->
+    <div
+      class="upload-zone"
+      [class.drag-over]="dragOver"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)">
+      <mat-icon class="upload-icon">cloud_upload</mat-icon>
+      <p class="upload-text">Drag and drop files here</p>
+      <p class="upload-subtext">or</p>
+      <label for="file-input">
+        <button mat-raised-button color="primary" type="button" (click)="fileInput.click()">
+          <mat-icon>folder_open</mat-icon>
+          Browse Files
+        </button>
+      </label>
+      <input
+        #fileInput
+        type="file"
+        id="file-input"
+        multiple
+        accept="image/*,.pdf,.doc,.docx,.txt"
+        (change)="onFileSelected($event)"
+        style="display: none;">
+      <p class="upload-info">
+        <mat-icon class="info-icon">info</mat-icon>
+        Maximum file size: 5MB. Allowed: Images (JPEG, PNG, GIF, WebP) and Documents (PDF, DOC, TXT)
+      </p>
+    </div>
+
+    <!-- Upload Queue -->
+    <div class="upload-queue" *ngIf="uploadQueue.length > 0">
+      <div class="queue-header">
+        <h3>Upload Queue ({{ uploadQueue.length }} file<span *ngIf="uploadQueue.length !== 1">s</span>)</h3>
+        <div class="queue-actions">
+          <button mat-button color="primary" (click)="uploadAll()" [disabled]="isUploadAllDisabled()">
+            <mat-icon>upload</mat-icon>
+            Upload All
+          </button>
+          <button mat-button (click)="clearCompleted()" [disabled]="!hasCompletedUploads()">
+            <mat-icon>clear</mat-icon>
+            Clear Completed
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload Items -->
+      <div class="upload-item" *ngFor="let item of uploadQueue">
+        <div class="item-icon">
+          <mat-icon [color]="item.media ? 'primary' : 'accent'">{{ getFileIcon(item.file) }}</mat-icon>
+        </div>
+
+        <div class="item-details">
+          <div class="item-name">{{ item.file.name }}</div>
+          <div class="item-size">{{ formatFileSize(item.file.size) }}</div>
+
+          <!-- Caption Input -->
+          <mat-form-field class="caption-field" *ngIf="!item.media">
+            <mat-label>Caption (optional)</mat-label>
+            <input matInput [(ngModel)]="item.caption" placeholder="Add a caption...">
+          </mat-form-field>
+
+          <!-- Caption Display -->
+          <div class="item-caption" *ngIf="item.media && item.caption">
+            <mat-icon class="caption-icon">description</mat-icon>
+            {{ item.caption }}
+          </div>
+
+          <!-- Progress Bar -->
+          <mat-progress-bar
+            *ngIf="item.uploading"
+            mode="determinate"
+            [value]="item.progress"
+            color="primary">
+          </mat-progress-bar>
+
+          <!-- Status -->
+          <div class="item-status">
+            <span *ngIf="item.media" class="status-success">
+              <mat-icon>check_circle</mat-icon>
+              Uploaded successfully
+            </span>
+            <span *ngIf="item.error" class="status-error">
+              <mat-icon>error</mat-icon>
+              {{ item.error }}
+            </span>
+            <span *ngIf="item.uploading" class="status-uploading">
+              Uploading... {{ item.progress }}%
+            </span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="item-actions">
+          <button mat-icon-button
+                  *ngIf="!item.uploading && !item.media"
+                  color="primary"
+                  (click)="uploadFile(item)"
+                  matTooltip="Upload file">
+            <mat-icon>upload</mat-icon>
+          </button>
+
+          <button mat-icon-button
+                  (click)="removeFromQueue(item)"
+                  matTooltip="Remove from queue"
+                  [disabled]="item.uploading">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+

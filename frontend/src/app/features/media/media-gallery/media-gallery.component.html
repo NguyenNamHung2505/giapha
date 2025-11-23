@@ -1,0 +1,123 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon>photo_library</mat-icon>
+      Media Gallery
+      <span class="media-count" *ngIf="mediaList.length > 0">({{ mediaList.length }})</span>
+    </mat-card-title>
+    <div class="header-actions">
+      <button mat-icon-button (click)="loadMedia()" matTooltip="Refresh">
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+  </mat-card-header>
+
+  <mat-card-content>
+    <!-- Loading State -->
+    <div class="loading-container" *ngIf="loading">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>Loading media...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loading && mediaList.length === 0">
+      <mat-icon class="empty-icon">photo_library</mat-icon>
+      <p class="empty-text">No media files yet</p>
+      <p class="empty-subtext">Upload photos and documents to see them here</p>
+    </div>
+
+    <!-- Media Grid -->
+    <div class="media-grid" *ngIf="!loading && mediaList.length > 0">
+      <div class="media-item" *ngFor="let media of mediaList">
+        <!-- Media Preview -->
+        <div class="media-preview" (click)="openMedia(media)">
+          <!-- Image Thumbnail -->
+          <img
+            *ngIf="isImage(media)"
+            [src]="getThumbnailUrl(media)"
+            [alt]="media.filename"
+            class="media-thumbnail"
+            loading="lazy">
+
+          <!-- Non-Image Icon -->
+          <div *ngIf="!isImage(media)" class="media-icon-container">
+            <mat-icon class="media-icon">{{ getIconForMediaType(media.type) }}</mat-icon>
+          </div>
+
+          <!-- Overlay on Hover -->
+          <div class="media-overlay">
+            <button mat-icon-button class="overlay-btn" (click)="$event.stopPropagation(); openMedia(media)">
+              <mat-icon>{{ isImage(media) ? 'zoom_in' : 'download' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Media Info -->
+        <div class="media-info">
+          <div class="media-filename" [matTooltip]="media.filename">
+            {{ media.filename }}
+          </div>
+
+          <div class="media-metadata">
+            <span class="metadata-item">
+              <mat-icon class="metadata-icon">schedule</mat-icon>
+              {{ formatDate(media.uploadedAt) }}
+            </span>
+            <span class="metadata-item">
+              <mat-icon class="metadata-icon">storage</mat-icon>
+              {{ formatFileSize(media.fileSize) }}
+            </span>
+          </div>
+
+          <!-- Caption Display/Edit -->
+          <div class="media-caption">
+            <!-- Display Mode -->
+            <div *ngIf="!editingCaption[media.id]" class="caption-display">
+              <p class="caption-text" *ngIf="media.caption">{{ media.caption }}</p>
+              <p class="caption-empty" *ngIf="!media.caption">No caption</p>
+              <button mat-icon-button
+                      class="caption-edit-btn"
+                      (click)="startEditCaption(media)"
+                      matTooltip="Edit caption">
+                <mat-icon>edit</mat-icon>
+              </button>
+            </div>
+
+            <!-- Edit Mode -->
+            <div *ngIf="editingCaption[media.id]" class="caption-edit">
+              <mat-form-field class="caption-field" appearance="outline">
+                <mat-label>Caption</mat-label>
+                <input matInput
+                       [(ngModel)]="editedCaptions[media.id]"
+                       placeholder="Add a caption..."
+                       (keyup.enter)="saveCaption(media)"
+                       (keyup.escape)="cancelEditCaption(media)">
+              </mat-form-field>
+              <div class="caption-actions">
+                <button mat-icon-button color="primary" (click)="saveCaption(media)" matTooltip="Save">
+                  <mat-icon>check</mat-icon>
+                </button>
+                <button mat-icon-button (click)="cancelEditCaption(media)" matTooltip="Cancel">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="media-actions">
+            <button mat-button color="primary" (click)="downloadMedia(media)">
+              <mat-icon>download</mat-icon>
+              Download
+            </button>
+            <button mat-button color="warn" (click)="deleteMedia(media)">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
