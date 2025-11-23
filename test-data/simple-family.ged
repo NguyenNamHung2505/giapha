@@ -1,0 +1,54 @@
+0 HEAD
+1 SOUR Family Tree Manager
+2 VERS 1.0
+1 DATE 23 NOV 2025
+1 FILE simple-family.ged
+1 GEDC
+2 VERS 5.5.1
+2 FORM LINEAGE-LINKED
+1 CHAR UTF-8
+0 @I1@ INDI
+1 NAME John /Smith/
+2 GIVN John
+2 SURN Smith
+1 SEX M
+1 BIRT
+2 DATE 15 JAN 1950
+2 PLAC New York, USA
+1 NOTE Software engineer, loves hiking
+0 @I2@ INDI
+1 NAME Jane /Doe/
+2 GIVN Jane
+2 SURN Doe
+1 SEX F
+1 BIRT
+2 DATE 20 MAR 1952
+2 PLAC Boston, USA
+1 NOTE Teacher, enjoys reading
+0 @I3@ INDI
+1 NAME Michael /Smith/
+2 GIVN Michael
+2 SURN Smith
+1 SEX M
+1 BIRT
+2 DATE 5 JUN 1975
+2 PLAC San Francisco, USA
+1 NOTE First child of John and Jane
+0 @I4@ INDI
+1 NAME Emily /Smith/
+2 GIVN Emily
+2 SURN Smith
+1 SEX F
+1 BIRT
+2 DATE 12 SEP 1978
+2 PLAC San Francisco, USA
+1 NOTE Second child of John and Jane
+0 @F1@ FAM
+1 HUSB @I1@
+1 WIFE @I2@
+1 MARR
+2 DATE 10 JUN 1974
+2 PLAC Las Vegas, USA
+1 CHIL @I3@
+1 CHIL @I4@
+0 TRLR

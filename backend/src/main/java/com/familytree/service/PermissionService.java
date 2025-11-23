@@ -100,5 +100,44 @@ public class PermissionService {
                 .findFirst()
                 .orElse(null);
     }
+
+    /**
+     * Check if user can view a tree (by user ID)
+     */
+    public boolean canViewTree(UUID userId, UUID treeId) {
+        FamilyTree tree = treeRepository.findById(treeId).orElse(null);
+        if (tree == null) {
+            return false;
+        }
+
+        // Owner has all permissions
+        if (tree.getOwner().getId().equals(userId)) {
+            return true;
+        }
+
+        // Check if user has any permission
+        return tree.getPermissions().stream()
+                .anyMatch(p -> p.getUser().getId().equals(userId));
+    }
+
+    /**
+     * Check if user can modify a tree (by user ID)
+     */
+    public boolean canModifyTree(UUID userId, UUID treeId) {
+        FamilyTree tree = treeRepository.findById(treeId).orElse(null);
+        if (tree == null) {
+            return false;
+        }
+
+        // Owner has all permissions
+        if (tree.getOwner().getId().equals(userId)) {
+            return true;
+        }
+
+        // Check if user has editor permission
+        return tree.getPermissions().stream()
+                .filter(p -> p.getUser().getId().equals(userId))
+                .anyMatch(p -> p.getRole() == PermissionRole.EDITOR || p.getRole() == PermissionRole.OWNER);
+    }
 }
 
