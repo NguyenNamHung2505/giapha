@@ -17,7 +17,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -34,6 +36,7 @@ public class IndividualService {
     private final UserRepository userRepository;
     private final com.familytree.repository.MediaRepository mediaRepository;
     private final com.familytree.repository.EventRepository eventRepository;
+    private final MinioService minioService;
 
     /**
      * Create a new individual in a tree
@@ -175,8 +178,148 @@ public class IndividualService {
             throw new UnauthorizedException("Only the tree owner can delete individuals");
         }
 
+        // Delete avatar from MinIO if exists
+        if (individual.getProfilePictureUrl() != null && !individual.getProfilePictureUrl().isEmpty()) {
+            try {
+                String objectName = extractObjectNameFromUrl(individual.getProfilePictureUrl());
+                if (objectName != null) {
+                    minioService.deleteFile(objectName);
+                    log.info("Deleted avatar for individual {}", individualId);
+                }
+            } catch (Exception e) {
+                log.error("Failed to delete avatar for individual {}: {}", individualId, e.getMessage());
+            }
+        }
+
         individualRepository.delete(individual);
         log.info("Individual {} deleted successfully", individualId);
+    }
+
+    /**
+     * Upload profile picture/avatar for an individual
+     */
+    public String uploadAvatar(UUID individualId, MultipartFile file, String userEmail) {
+        log.info("Uploading avatar for individual {} by user '{}'", individualId, userEmail);
+
+        Individual individual = individualRepository.findById(individualId)
+                .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
+
+        // Check authorization - only owner can upload avatar
+        if (!isOwner(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner can upload avatars");
+        }
+
+        try {
+            // Delete old avatar if exists
+            if (individual.getProfilePictureUrl() != null && !individual.getProfilePictureUrl().isEmpty()) {
+                try {
+                    String oldObjectName = extractObjectNameFromUrl(individual.getProfilePictureUrl());
+                    if (oldObjectName != null) {
+                        minioService.deleteFile(oldObjectName);
+                        log.info("Deleted old avatar for individual {}", individualId);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to delete old avatar: {}", e.getMessage());
+                }
+            }
+
+            // Generate object name: avatars/individuals/{id}/avatar.{extension}
+            String originalFilename = file.getOriginalFilename();
+            String extension = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+            }
+            String objectName = "avatars/individuals/" + individualId + "/avatar" + extension;
+
+            // Upload new avatar to MinIO
+            String storagePath = minioService.uploadFile(file, objectName);
+
+            // Generate URL: /api/trees/{treeId}/individuals/{id}/avatar
+            String avatarUrl = "/api/trees/" + individual.getTree().getId() + "/individuals/" + individualId + "/avatar";
+
+            // Update individual with new avatar URL
+            individual.setProfilePictureUrl(avatarUrl);
+            individualRepository.save(individual);
+
+            log.info("Avatar uploaded successfully for individual {}: {}", individualId, avatarUrl);
+            return avatarUrl;
+
+        } catch (Exception e) {
+            log.error("Failed to upload avatar for individual {}: {}", individualId, e.getMessage());
+            throw new RuntimeException("Failed to upload avatar: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Delete profile picture/avatar for an individual
+     */
+    public void deleteAvatar(UUID individualId, String userEmail) {
+        log.info("Deleting avatar for individual {} by user '{}'", individualId, userEmail);
+
+        Individual individual = individualRepository.findById(individualId)
+                .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
+
+        // Check authorization - only owner can delete avatar
+        if (!isOwner(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner can delete avatars");
+        }
+
+        // Delete avatar from MinIO if exists
+        if (individual.getProfilePictureUrl() != null && !individual.getProfilePictureUrl().isEmpty()) {
+            try {
+                String objectName = extractObjectNameFromUrl(individual.getProfilePictureUrl());
+                if (objectName != null) {
+                    minioService.deleteFile(objectName);
+                    log.info("Deleted avatar from MinIO for individual {}", individualId);
+                }
+            } catch (Exception e) {
+                log.error("Failed to delete avatar from MinIO: {}", e.getMessage());
+                throw new RuntimeException("Failed to delete avatar: " + e.getMessage(), e);
+            }
+        }
+
+        // Update individual to remove avatar URL
+        individual.setProfilePictureUrl(null);
+        individualRepository.save(individual);
+
+        log.info("Avatar deleted successfully for individual {}", individualId);
+    }
+
+    /**
+     * Extract object name from URL stored in profilePictureUrl
+     * For avatars, we store API endpoint: /api/trees/{treeId}/individuals/{id}/avatar
+     * And need to extract MinIO object name: avatars/individuals/{id}/avatar.{ext}
+     * We need to query the individual to get the actual storage path
+     */
+    private String extractObjectNameFromUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+
+        // Extract individual ID from URL: /api/trees/{treeId}/individuals/{id}/avatar
+        String pattern = "/individuals/";
+        int individualIdStart = url.indexOf(pattern);
+        if (individualIdStart != -1) {
+            individualIdStart += pattern.length();
+            int individualIdEnd = url.indexOf("/", individualIdStart);
+            if (individualIdEnd != -1) {
+                String individualIdStr = url.substring(individualIdStart, individualIdEnd);
+                try {
+                    UUID individualId = UUID.fromString(individualIdStr);
+                    // List files in MinIO for this individual to find avatar
+                    String prefix = "avatars/individuals/" + individualId + "/";
+                    List<String> files = minioService.listFiles(prefix);
+                    if (!files.isEmpty()) {
+                        // Return the first file found (should only be one avatar)
+                        return files.get(0);
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to extract individual ID from URL: {}", url, e);
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -221,6 +364,7 @@ public class IndividualService {
                 .deathDate(individual.getDeathDate())
                 .deathPlace(individual.getDeathPlace())
                 .biography(individual.getBiography())
+                .profilePictureUrl(individual.getProfilePictureUrl())
                 .mediaCount((int) mediaCount)
                 .eventCount((int) eventCount)
                 .createdAt(individual.getCreatedAt())

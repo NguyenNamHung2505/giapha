@@ -9,9 +9,35 @@
     <mat-card class="header-card">
       <mat-card-content>
         <div class="header-section">
+          <!-- Avatar Section -->
+          <div class="avatar-section">
+            <div class="avatar-container">
+              <img *ngIf="individual.profilePictureUrl"
+                   [src]="getAvatarUrl()"
+                   alt="{{ individual.fullName }}"
+                   class="avatar-image">
+              <div *ngIf="!individual.profilePictureUrl" class="avatar-placeholder">
+                <mat-icon>person</mat-icon>
+              </div>
+            </div>
+            <div class="avatar-actions">
+              <input #fileInput type="file" accept="image/*" (change)="onAvatarSelected($event)" style="display: none">
+              <button mat-stroked-button color="primary" (click)="fileInput.click()">
+                <mat-icon>upload</mat-icon>
+                {{ individual.profilePictureUrl ? 'Change' : 'Upload' }} Avatar
+              </button>
+              <button *ngIf="individual.profilePictureUrl"
+                      mat-stroked-button
+                      color="warn"
+                      (click)="deleteAvatar()">
+                <mat-icon>delete</mat-icon>
+                Remove Avatar
+              </button>
+            </div>
+          </div>
+
           <div class="individual-info">
             <div class="name-section">
-              <mat-icon class="person-icon">person</mat-icon>
               <div>
                 <h1>{{ individual.fullName }}</h1>
                 <p class="life-years">{{ getLifeYears() }}</p>

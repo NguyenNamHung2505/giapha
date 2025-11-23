@@ -79,6 +79,10 @@ public class Individual {
     @Column(columnDefinition = "TEXT")
     private String biography;
 
+    @Size(max = 1000)
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

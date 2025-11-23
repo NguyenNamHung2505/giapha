@@ -173,6 +173,78 @@ export class IndividualDetailComponent implements OnInit {
   }
 
   /**
+   * Get avatar URL for display
+   */
+  getAvatarUrl(): string {
+    if (!this.individual?.profilePictureUrl) {
+      return '';
+    }
+    // If it's already a full URL, return as is
+    if (this.individual.profilePictureUrl.startsWith('http')) {
+      return this.individual.profilePictureUrl;
+    }
+    // Otherwise, prepend API base URL
+    return `http://localhost:8080${this.individual.profilePictureUrl}`;
+  }
+
+  /**
+   * Handle avatar file selection
+   */
+  onAvatarSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Please select an image file', 'Close', { duration: 3000 });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      this.snackBar.open('Image size must be less than 5MB', 'Close', { duration: 3000 });
+      return;
+    }
+
+    // Upload avatar
+    this.individualService.uploadAvatar(this.treeId, this.individualId, file).subscribe({
+      next: (response) => {
+        this.snackBar.open('Avatar uploaded successfully', 'Close', { duration: 3000 });
+        // Reload individual to get updated avatar URL
+        this.loadIndividual();
+      },
+      error: (error) => {
+        console.error('Error uploading avatar:', error);
+        this.snackBar.open('Failed to upload avatar', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  /**
+   * Delete avatar
+   */
+  deleteAvatar(): void {
+    if (!confirm('Are you sure you want to remove the avatar?')) {
+      return;
+    }
+
+    this.individualService.deleteAvatar(this.treeId, this.individualId).subscribe({
+      next: () => {
+        this.snackBar.open('Avatar removed successfully', 'Close', { duration: 3000 });
+        // Reload individual to update avatar URL
+        this.loadIndividual();
+      },
+      error: (error) => {
+        console.error('Error deleting avatar:', error);
+        this.snackBar.open('Failed to remove avatar', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  /**
    * Handle media upload completion
    */
   onMediaUploaded(media: Media): void {

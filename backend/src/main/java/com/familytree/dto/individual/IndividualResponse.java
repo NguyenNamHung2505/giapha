@@ -39,6 +39,7 @@ public class IndividualResponse {
 
     private String deathPlace;
     private String biography;
+    private String profilePictureUrl;
     private int mediaCount;
     private int eventCount;
 

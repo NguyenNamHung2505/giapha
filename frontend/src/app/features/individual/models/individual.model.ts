@@ -19,6 +19,7 @@ export interface Individual {
   deathDate?: string;
   deathPlace?: string;
   biography?: string;
+  profilePictureUrl?: string;
   mediaCount: number;
   eventCount: number;
   createdAt: string;

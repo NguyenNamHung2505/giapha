@@ -54,4 +54,20 @@ export class IndividualService {
   deleteIndividual(treeId: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${treeId}/individuals/${id}`);
   }
+
+  /**
+   * Upload avatar for an individual
+   */
+  uploadAvatar(treeId: string, id: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/${treeId}/individuals/${id}/avatar`, formData);
+  }
+
+  /**
+   * Delete avatar for an individual
+   */
+  deleteAvatar(treeId: string, id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${treeId}/individuals/${id}/avatar`);
+  }
 }
