@@ -1,14 +1,22 @@
 package com.familytree.service;
 
+import com.familytree.dto.collaboration.PermissionResponse;
 import com.familytree.model.FamilyTree;
 import com.familytree.model.PermissionRole;
+import com.familytree.model.TreePermission;
+import com.familytree.model.User;
 import com.familytree.repository.FamilyTreeRepository;
 import com.familytree.repository.TreePermissionRepository;
+import com.familytree.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Service for managing tree permissions and authorization checks
@@ -20,6 +28,7 @@ public class PermissionService {
 
     private final FamilyTreeRepository treeRepository;
     private final TreePermissionRepository permissionRepository;
+    private final UserRepository userRepository;
 
     /**
      * Check if user has view permission (viewer, editor, or owner)
@@ -138,6 +147,125 @@ public class PermissionService {
         return tree.getPermissions().stream()
                 .filter(p -> p.getUser().getId().equals(userId))
                 .anyMatch(p -> p.getRole() == PermissionRole.EDITOR || p.getRole() == PermissionRole.OWNER);
+    }
+
+    /**
+     * Get all collaborators for a tree
+     */
+    @Transactional(readOnly = true)
+    public List<PermissionResponse> getTreeCollaborators(UUID treeId, UUID userId) {
+        FamilyTree tree = treeRepository.findById(treeId)
+                .orElseThrow(() -> new RuntimeException("Tree not found"));
+
+        // Verify user has access to view collaborators
+        if (!canViewTree(userId, treeId)) {
+            throw new RuntimeException("You don't have permission to view this tree");
+        }
+
+        List<PermissionResponse> collaborators = new ArrayList<>();
+
+        // Add owner
+        PermissionResponse owner = PermissionResponse.builder()
+                .id(tree.getOwner().getId().toString())
+                .userId(tree.getOwner().getId().toString())
+                .userName(tree.getOwner().getName())
+                .userEmail(tree.getOwner().getEmail())
+                .role(PermissionRole.OWNER)
+                .grantedAt(tree.getCreatedAt())
+                .isOwner(true)
+                .build();
+        collaborators.add(owner);
+
+        // Add other collaborators
+        List<PermissionResponse> others = tree.getPermissions().stream()
+                .map(PermissionResponse::fromEntity)
+                .collect(Collectors.toList());
+        collaborators.addAll(others);
+
+        return collaborators;
+    }
+
+    /**
+     * Update a collaborator's role
+     */
+    @Transactional
+    public void updateCollaboratorRole(UUID treeId, UUID userId, UUID collaboratorId, PermissionRole newRole) {
+        FamilyTree tree = treeRepository.findById(treeId)
+                .orElseThrow(() -> new RuntimeException("Tree not found"));
+
+        // Only owner can update roles
+        if (!tree.getOwner().getId().equals(userId)) {
+            throw new RuntimeException("Only the tree owner can update collaborator roles");
+        }
+
+        // Cannot update to OWNER role
+        if (newRole == PermissionRole.OWNER) {
+            throw new RuntimeException("Cannot promote collaborator to owner");
+        }
+
+        // Find the permission
+        TreePermission permission = tree.getPermissions().stream()
+                .filter(p -> p.getUser().getId().equals(collaboratorId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Collaborator not found"));
+
+        permission.setRole(newRole);
+        permissionRepository.save(permission);
+
+        log.info("Updated role for user {} on tree {} to {}", collaboratorId, treeId, newRole);
+    }
+
+    /**
+     * Remove a collaborator
+     */
+    @Transactional
+    public void removeCollaborator(UUID treeId, UUID userId, UUID collaboratorId) {
+        FamilyTree tree = treeRepository.findById(treeId)
+                .orElseThrow(() -> new RuntimeException("Tree not found"));
+
+        // Only owner can remove collaborators
+        if (!tree.getOwner().getId().equals(userId)) {
+            throw new RuntimeException("Only the tree owner can remove collaborators");
+        }
+
+        // Cannot remove owner
+        if (tree.getOwner().getId().equals(collaboratorId)) {
+            throw new RuntimeException("Cannot remove the tree owner");
+        }
+
+        // Find and delete the permission
+        TreePermission permission = tree.getPermissions().stream()
+                .filter(p -> p.getUser().getId().equals(collaboratorId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Collaborator not found"));
+
+        permissionRepository.delete(permission);
+
+        log.info("Removed user {} from tree {}", collaboratorId, treeId);
+    }
+
+    /**
+     * Leave a tree (remove yourself as collaborator)
+     */
+    @Transactional
+    public void leaveTree(UUID treeId, UUID userId) {
+        FamilyTree tree = treeRepository.findById(treeId)
+                .orElseThrow(() -> new RuntimeException("Tree not found"));
+
+        // Cannot leave if you're the owner
+        if (tree.getOwner().getId().equals(userId)) {
+            throw new RuntimeException("Tree owner cannot leave the tree");
+        }
+
+        // Find and delete the permission
+        TreePermission permission = tree.getPermissions().stream()
+                .filter(p -> p.getUser().getId().equals(userId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("You don't have access to this tree"));
+
+        permissionRepository.delete(permission);
+
+        log.info("User {} left tree {}", userId, treeId);
     }
 }
 
