@@ -1,0 +1,81 @@
+<div class="settings-container">
+  <mat-toolbar class="page-toolbar">
+    <button mat-icon-button routerLink="/" [matTooltip]="'common.back' | translate">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="toolbar-title">{{ 'settings.title' | translate }}</span>
+    <span class="toolbar-spacer"></span>
+  </mat-toolbar>
+
+  <div class="settings-content">
+    <!-- Change Password Card -->
+    <mat-card class="password-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>lock</mat-icon>
+        <mat-card-title>{{ 'settings.changePassword' | translate }}</mat-card-title>
+        <mat-card-subtitle>{{ 'settings.changePasswordDesc' | translate }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="passwordForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'settings.currentPassword' | translate }}</mat-label>
+            <input matInput
+                   [type]="hideCurrentPassword ? 'password' : 'text'"
+                   formControlName="currentPassword">
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hideCurrentPassword = !hideCurrentPassword">
+              <mat-icon>{{ hideCurrentPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">
+              {{ 'validation.required' | translate }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'settings.newPassword' | translate }}</mat-label>
+            <input matInput
+                   [type]="hideNewPassword ? 'password' : 'text'"
+                   formControlName="newPassword">
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hideNewPassword = !hideNewPassword">
+              <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">
+              {{ 'validation.required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">
+              {{ 'validation.minLength' | translate: {min: 6} }}
+            </mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'settings.confirmNewPassword' | translate }}</mat-label>
+            <input matInput
+                   [type]="hideConfirmPassword ? 'password' : 'text'"
+                   formControlName="confirmPassword">
+            <button mat-icon-button matSuffix type="button"
+                    (click)="hideConfirmPassword = !hideConfirmPassword">
+              <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">
+              {{ 'validation.required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('passwordMismatch')">
+              {{ 'validation.passwordMismatch' | translate }}
+            </mat-error>
+          </mat-form-field>
+
+          <div class="form-actions">
+            <button mat-raised-button color="primary"
+                    type="submit"
+                    [disabled]="passwordForm.invalid || loading">
+              <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+              <span *ngIf="!loading">{{ 'settings.changePassword' | translate }}</span>
+            </button>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

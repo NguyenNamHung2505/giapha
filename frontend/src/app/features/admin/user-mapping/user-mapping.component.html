@@ -1,0 +1,145 @@
+<div class="user-mapping-container">
+  <mat-toolbar class="page-toolbar">
+    <button mat-icon-button (click)="back()" matTooltip="Quay lai">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="toolbar-title">Lien ket nguoi dung voi thanh vien gia dinh</span>
+    <span class="toolbar-spacer"></span>
+    <button mat-stroked-button routerLink="/admin/users" class="manage-users-btn">
+      <mat-icon>people</mat-icon>
+      Quan ly nguoi dung
+    </button>
+  </mat-toolbar>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Dang tai...</p>
+  </div>
+
+  <!-- Linking Form -->
+  <mat-card class="linking-card" *ngIf="selectedUser && !loading">
+    <mat-card-header>
+      <mat-card-title>Lien ket "{{ selectedUser.name }}" voi thanh vien</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="individual-select">
+        <mat-label>Tim thanh vien</mat-label>
+        <input type="text"
+               matInput
+               [formControl]="individualSearchControl"
+               [matAutocomplete]="auto"
+               placeholder="Nhap ten...">
+        <mat-autocomplete #auto="matAutocomplete"
+                          [displayWith]="displayIndividual.bind(this)"
+                          (optionSelected)="linkUser($event.option.value)">
+          <mat-option *ngFor="let ind of filteredIndividuals$ | async" [value]="ind">
+            <div class="individual-option">
+              <img *ngIf="getAvatarUrl(ind.profilePictureUrl)"
+                   [src]="getAvatarUrl(ind.profilePictureUrl)"
+                   class="avatar-small">
+              <mat-icon *ngIf="!ind.profilePictureUrl" class="avatar-icon"
+                        [class.male]="ind.gender === 'MALE'"
+                        [class.female]="ind.gender === 'FEMALE'">person</mat-icon>
+              <span>{{ displayIndividual(ind) }}</span>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+      </mat-form-field>
+      <button mat-button (click)="cancelLinking()">Huy</button>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Users Table -->
+  <mat-card class="users-table-card" *ngIf="!loading">
+    <mat-card-header>
+      <mat-card-title>Danh sach nguoi dung</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <table mat-table [dataSource]="users" class="users-table">
+        <!-- User Name Column -->
+        <ng-container matColumnDef="userName">
+          <th mat-header-cell *matHeaderCellDef>Nguoi dung</th>
+          <td mat-cell *matCellDef="let user">
+            <div class="user-info">
+              <mat-icon class="user-icon">account_circle</mat-icon>
+              <div>
+                <strong>{{ user.name }}</strong>
+                <span class="admin-badge" *ngIf="user.admin">Admin</span>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Email Column -->
+        <ng-container matColumnDef="userEmail">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+        </ng-container>
+
+        <!-- Linked Individual Column -->
+        <ng-container matColumnDef="linkedIndividual">
+          <th mat-header-cell *matHeaderCellDef>Lien ket voi</th>
+          <td mat-cell *matCellDef="let user">
+            <div class="linked-individual" *ngIf="user.linkedIndividual">
+              <img *ngIf="getAvatarUrl(user.linkedIndividual.profilePictureUrl)"
+                   [src]="getAvatarUrl(user.linkedIndividual.profilePictureUrl)"
+                   class="avatar-medium">
+              <mat-icon *ngIf="!user.linkedIndividual.profilePictureUrl"
+                        class="avatar-icon-medium"
+                        [class.male]="user.linkedIndividual.gender === 'MALE'"
+                        [class.female]="user.linkedIndividual.gender === 'FEMALE'">person</mat-icon>
+              <div class="individual-info">
+                <strong>{{ user.linkedIndividual.fullName }}</strong>
+                <span *ngIf="user.linkedIndividual.birthDate">
+                  Sinh: {{ user.linkedIndividual.birthDate | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+            </div>
+            <span class="not-linked" *ngIf="!user.linkedIndividual">Chua lien ket</span>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Thao tac</th>
+          <td mat-cell *matCellDef="let user">
+            <button mat-raised-button
+                    color="primary"
+                    (click)="startLinking(user)"
+                    *ngIf="!user.linkedIndividual"
+                    [disabled]="selectedUser !== null">
+              <mat-icon>link</mat-icon>
+              Lien ket
+            </button>
+            <button mat-stroked-button
+                    color="accent"
+                    (click)="startLinking(user)"
+                    *ngIf="user.linkedIndividual"
+                    [disabled]="selectedUser !== null"
+                    matTooltip="Thay doi lien ket">
+              <mat-icon>edit</mat-icon>
+              Doi
+            </button>
+            <button mat-icon-button
+                    color="warn"
+                    (click)="unlinkUser(user)"
+                    *ngIf="user.linkedIndividual"
+                    matTooltip="Huy lien ket">
+              <mat-icon>link_off</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+            [class.selected]="selectedUser?.id === row.id"></tr>
+      </table>
+
+      <div class="empty-state" *ngIf="users.length === 0">
+        <mat-icon>people_outline</mat-icon>
+        <p>Chua co nguoi dung nao</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

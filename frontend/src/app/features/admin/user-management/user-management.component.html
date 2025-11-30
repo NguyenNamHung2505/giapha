@@ -1,0 +1,405 @@
+<div class="user-management-container">
+  <mat-toolbar class="page-toolbar">
+    <button mat-icon-button routerLink="/trees" [matTooltip]="'common.back' | translate">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span class="toolbar-title">{{ 'admin.userManagement' | translate }}</span>
+    <span class="toolbar-spacer"></span>
+  </mat-toolbar>
+
+  <mat-tab-group [(selectedIndex)]="selectedTabIndex" class="tabs-container">
+    <!-- Tab 1: User Management -->
+    <mat-tab [label]="'admin.userList' | translate">
+      <div class="tab-content">
+        <div class="tab-header">
+          <button mat-raised-button color="primary" (click)="openCreateForm()">
+            <mat-icon>person_add</mat-icon>
+            {{ 'admin.createUser' | translate }}
+          </button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" *ngIf="loading">
+          <mat-spinner></mat-spinner>
+          <p>{{ 'common.loading' | translate }}</p>
+        </div>
+
+        <!-- User Form -->
+        <mat-card class="user-form-card" *ngIf="showUserForm">
+          <mat-card-header>
+            <mat-card-title>{{ editingUser ? ('admin.editUser' | translate) : ('admin.createUser' | translate) }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'auth.username' | translate }}</mat-label>
+                <input matInput formControlName="username">
+                <mat-error *ngIf="userForm.get('username')?.hasError('required')">{{ 'validation.required' | translate }}</mat-error>
+                <mat-error *ngIf="userForm.get('username')?.hasError('minlength')">{{ 'validation.minLength' | translate: {min: 3} }}</mat-error>
+                <mat-error *ngIf="userForm.get('username')?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 50} }}</mat-error>
+                <mat-error *ngIf="userForm.get('username')?.hasError('pattern')">{{ 'validation.usernamePattern' | translate }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'admin.fullName' | translate }}</mat-label>
+                <input matInput formControlName="name">
+                <mat-error *ngIf="userForm.get('name')?.hasError('required')">{{ 'validation.required' | translate }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ 'auth.emailOptional' | translate }}</mat-label>
+                <input matInput formControlName="email" type="email">
+                <mat-error *ngIf="userForm.get('email')?.hasError('email')">{{ 'validation.email' | translate }}</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>{{ editingUser ? ('admin.newPassword' | translate) : ('admin.password' | translate) }}</mat-label>
+                <input matInput formControlName="password" type="password">
+                <mat-error *ngIf="userForm.get('password')?.hasError('required')">{{ 'validation.required' | translate }}</mat-error>
+                <mat-error *ngIf="userForm.get('password')?.hasError('minlength')">{{ 'validation.minLength' | translate: {min: 6} }}</mat-error>
+              </mat-form-field>
+
+              <div class="checkbox-row">
+                <mat-checkbox formControlName="admin">{{ 'admin.adminRole' | translate }}</mat-checkbox>
+                <mat-checkbox formControlName="enabled" *ngIf="editingUser">{{ 'admin.enabled' | translate }}</mat-checkbox>
+              </div>
+
+              <div class="form-actions">
+                <button mat-button type="button" (click)="cancelForm()">{{ 'common.cancel' | translate }}</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="userForm.invalid">
+                  {{ editingUser ? ('common.save' | translate) : ('common.add' | translate) }}
+                </button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Users Table -->
+        <mat-card class="users-table-card" *ngIf="!loading">
+          <mat-card-content>
+            <table mat-table [dataSource]="users" class="users-table">
+              <!-- Username Column -->
+              <ng-container matColumnDef="username">
+                <th mat-header-cell *matHeaderCellDef>{{ 'auth.username' | translate }}</th>
+                <td mat-cell *matCellDef="let user">{{ user.username }}</td>
+              </ng-container>
+
+              <!-- Name Column -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.fullName' | translate }}</th>
+                <td mat-cell *matCellDef="let user">{{ user.name }}</td>
+              </ng-container>
+
+              <!-- Email Column -->
+              <ng-container matColumnDef="email">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.userEmail' | translate }}</th>
+                <td mat-cell *matCellDef="let user">{{ user.email || '-' }}</td>
+              </ng-container>
+
+              <!-- Admin Column -->
+              <ng-container matColumnDef="admin">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.adminRole' | translate }}</th>
+                <td mat-cell *matCellDef="let user">
+                  <mat-slide-toggle
+                    [checked]="user.admin"
+                    (change)="toggleAdmin(user)"
+                    color="primary">
+                  </mat-slide-toggle>
+                </td>
+              </ng-container>
+
+              <!-- Enabled Column -->
+              <ng-container matColumnDef="enabled">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.userStatus' | translate }}</th>
+                <td mat-cell *matCellDef="let user">
+                  <mat-chip-listbox>
+                    <mat-chip [color]="user.enabled ? 'primary' : 'warn'" selected (click)="toggleEnabled(user)">
+                      {{ user.enabled ? ('admin.active' | translate) : ('admin.inactive' | translate) }}
+                    </mat-chip>
+                  </mat-chip-listbox>
+                </td>
+              </ng-container>
+
+              <!-- Created At Column -->
+              <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.createdAt' | translate }}</th>
+                <td mat-cell *matCellDef="let user">{{ user.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.actions' | translate }}</th>
+                <td mat-cell *matCellDef="let user">
+                  <button mat-icon-button (click)="openEditForm(user)" [matTooltip]="'common.edit' | translate">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn" (click)="deleteUser(user)" [matTooltip]="'common.delete' | translate">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+            <mat-paginator
+              [length]="totalElements"
+              [pageSize]="pageSize"
+              [pageIndex]="pageIndex"
+              [pageSizeOptions]="[10, 20, 50]"
+              (page)="onPageChange($event)">
+            </mat-paginator>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: User Linking -->
+    <mat-tab [label]="'admin.linkToTree' | translate">
+      <div class="tab-content">
+        <!-- Tree Selector -->
+        <mat-card class="tree-selector-card">
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="tree-select">
+              <mat-label>{{ 'admin.selectTree' | translate }}</mat-label>
+              <mat-select [(ngModel)]="selectedTreeId" (selectionChange)="onTreeSelected()">
+                <mat-option *ngFor="let tree of trees" [value]="tree.id">
+                  {{ tree.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Loading -->
+        <div class="loading" *ngIf="linkingLoading">
+          <mat-spinner></mat-spinner>
+          <p>{{ 'common.loading' | translate }}</p>
+        </div>
+
+        <!-- No tree selected -->
+        <div class="empty-state" *ngIf="!selectedTreeId && !linkingLoading">
+          <mat-icon>account_tree</mat-icon>
+          <p>{{ 'admin.selectTreeToLink' | translate }}</p>
+        </div>
+
+        <!-- Linking Card -->
+        <mat-card class="linking-card" *ngIf="selectedUser">
+          <mat-card-header>
+            <mat-card-title>{{ 'admin.linkUser' | translate }} - {{ selectedUser.name }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="individual-select">
+              <mat-label>{{ 'admin.searchIndividual' | translate }}</mat-label>
+              <input matInput
+                     [matAutocomplete]="auto"
+                     [formControl]="individualSearchControl">
+              <mat-autocomplete #auto="matAutocomplete"
+                                [displayWith]="displayIndividual"
+                                (optionSelected)="linkUser($event.option.value)">
+                <mat-option *ngFor="let ind of filteredIndividuals$ | async" [value]="ind">
+                  <div class="individual-option">
+                    <img *ngIf="getAvatarUrl(ind.profilePictureUrl)"
+                         [src]="getAvatarUrl(ind.profilePictureUrl)"
+                         class="avatar-small">
+                    <mat-icon *ngIf="!getAvatarUrl(ind.profilePictureUrl)"
+                              class="avatar-icon"
+                              [class.male]="ind.gender === 'MALE'"
+                              [class.female]="ind.gender === 'FEMALE'">
+                      person
+                    </mat-icon>
+                    <span>{{ displayIndividual(ind) }}</span>
+                  </div>
+                </mat-option>
+              </mat-autocomplete>
+            </mat-form-field>
+            <button mat-button (click)="cancelLinking()">{{ 'common.cancel' | translate }}</button>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Users with profiles table -->
+        <mat-card class="users-table-card" *ngIf="selectedTreeId && !linkingLoading">
+          <mat-card-header>
+            <mat-card-title>{{ 'admin.userList' | translate }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="empty-state" *ngIf="usersWithProfiles.length === 0">
+              <mat-icon>people_outline</mat-icon>
+              <p>{{ 'admin.noUsers' | translate }}</p>
+            </div>
+
+            <table mat-table [dataSource]="usersWithProfiles" class="users-table" *ngIf="usersWithProfiles.length > 0">
+              <!-- Name Column -->
+              <ng-container matColumnDef="userName">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.userName' | translate }}</th>
+                <td mat-cell *matCellDef="let user">
+                  <div class="user-info">
+                    <mat-icon class="user-icon">account_circle</mat-icon>
+                    <span>{{ user.name }}</span>
+                    <span class="admin-badge" *ngIf="user.admin">{{ 'admin.adminRole' | translate }}</span>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Email Column -->
+              <ng-container matColumnDef="userEmail">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.userEmail' | translate }}</th>
+                <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+              </ng-container>
+
+              <!-- Linked Individual Column -->
+              <ng-container matColumnDef="linkedIndividual">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.linkedIndividual' | translate }}</th>
+                <td mat-cell *matCellDef="let user">
+                  <div class="linked-individual" *ngIf="user.linkedIndividual">
+                    <img *ngIf="getAvatarUrl(user.linkedIndividual.profilePictureUrl)"
+                         [src]="getAvatarUrl(user.linkedIndividual.profilePictureUrl)"
+                         class="avatar-medium">
+                    <mat-icon *ngIf="!getAvatarUrl(user.linkedIndividual.profilePictureUrl)"
+                              class="avatar-icon-medium"
+                              [class.male]="user.linkedIndividual.gender === 'MALE'"
+                              [class.female]="user.linkedIndividual.gender === 'FEMALE'">
+                      person
+                    </mat-icon>
+                    <div class="individual-info">
+                      <strong>{{ user.linkedIndividual.fullName }}</strong>
+                      <span *ngIf="user.linkedIndividual.birthDate">
+                        {{ user.linkedIndividual.birthDate | date:'yyyy' }}
+                      </span>
+                    </div>
+                  </div>
+                  <span class="not-linked" *ngIf="!user.linkedIndividual">{{ 'admin.notLinked' | translate }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.actions' | translate }}</th>
+                <td mat-cell *matCellDef="let user">
+                  <button mat-icon-button color="primary"
+                          (click)="startLinking(user)"
+                          *ngIf="!user.linkedIndividual"
+                          [matTooltip]="'admin.linkUser' | translate">
+                    <mat-icon>link</mat-icon>
+                  </button>
+                  <button mat-icon-button color="warn"
+                          (click)="unlinkUser(user)"
+                          *ngIf="user.linkedIndividual"
+                          [matTooltip]="'admin.unlinkUser' | translate">
+                    <mat-icon>link_off</mat-icon>
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="linkDisplayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: linkDisplayedColumns;"
+                  [class.selected]="selectedUser?.id === row.id"></tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: Create Users from Tree -->
+    <mat-tab [label]="'admin.createFromTree' | translate">
+      <div class="tab-content">
+        <!-- Tree Selector -->
+        <mat-card class="tree-selector-card">
+          <mat-card-content>
+            <div class="tree-selector-row">
+              <mat-form-field appearance="outline" class="tree-select">
+                <mat-label>{{ 'admin.selectTree' | translate }}</mat-label>
+                <mat-select [(ngModel)]="createFromTreeId" (selectionChange)="onCreateFromTreeSelected()">
+                  <mat-option *ngFor="let tree of trees" [value]="tree.id">
+                    {{ tree.name }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button mat-raised-button color="accent"
+                      [disabled]="!createFromTreeId || creatingUsers"
+                      (click)="createAllUsersFromTree()">
+                <mat-icon>group_add</mat-icon>
+                {{ 'admin.createAllUsers' | translate }}
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Loading -->
+        <div class="loading" *ngIf="createFromTreeLoading">
+          <mat-spinner></mat-spinner>
+          <p>{{ 'common.loading' | translate }}</p>
+        </div>
+
+        <!-- No tree selected -->
+        <div class="empty-state" *ngIf="!createFromTreeId && !createFromTreeLoading">
+          <mat-icon>account_tree</mat-icon>
+          <p>{{ 'admin.selectTreeToCreateUsers' | translate }}</p>
+        </div>
+
+        <!-- Individuals table -->
+        <mat-card class="users-table-card" *ngIf="createFromTreeId && !createFromTreeLoading">
+          <mat-card-header>
+            <mat-card-title>
+              {{ 'admin.individualsInTree' | translate }}
+              <span class="count-badge">{{ individualsForCreate.length }}</span>
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="empty-state" *ngIf="individualsForCreate.length === 0">
+              <mat-icon>check_circle</mat-icon>
+              <p>{{ 'admin.allIndividualsHaveUsers' | translate }}</p>
+            </div>
+
+            <table mat-table [dataSource]="individualsForCreate" class="users-table" *ngIf="individualsForCreate.length > 0">
+              <!-- Avatar Column -->
+              <ng-container matColumnDef="avatar">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let ind">
+                  <img *ngIf="getAvatarUrl(ind.profilePictureUrl)"
+                       [src]="getAvatarUrl(ind.profilePictureUrl)"
+                       class="avatar-medium">
+                  <mat-icon *ngIf="!getAvatarUrl(ind.profilePictureUrl)"
+                            class="avatar-icon-medium"
+                            [class.male]="ind.gender === 'MALE'"
+                            [class.female]="ind.gender === 'FEMALE'">
+                    person
+                  </mat-icon>
+                </td>
+              </ng-container>
+
+              <!-- Name Column -->
+              <ng-container matColumnDef="fullName">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.fullName' | translate }}</th>
+                <td mat-cell *matCellDef="let ind">{{ ind.fullName }}</td>
+              </ng-container>
+
+              <!-- Birth Date Column -->
+              <ng-container matColumnDef="birthDate">
+                <th mat-header-cell *matHeaderCellDef>{{ 'individual.birthDate' | translate }}</th>
+                <td mat-cell *matCellDef="let ind">{{ ind.birthDate | date:'dd/MM/yyyy' }}</td>
+              </ng-container>
+
+              <!-- Actions Column -->
+              <ng-container matColumnDef="createActions">
+                <th mat-header-cell *matHeaderCellDef>{{ 'admin.actions' | translate }}</th>
+                <td mat-cell *matCellDef="let ind">
+                  <button mat-raised-button color="primary"
+                          [disabled]="creatingUsers"
+                          (click)="createUserFromIndividual(ind)">
+                    <mat-icon>person_add</mat-icon>
+                    {{ 'admin.createUser' | translate }}
+                  </button>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="createFromTreeColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: createFromTreeColumns;"></tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

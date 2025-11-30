@@ -1,0 +1,170 @@
+<div class="ancestor-tree-container">
+  <!-- Toolbar -->
+  <mat-toolbar class="tree-toolbar">
+    <button mat-icon-button (click)="back()" matTooltip="Quay lai cay gia pha">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <button mat-raised-button color="accent" [routerLink]="['/trees', treeId, 'visualize']" class="back-to-tree-btn">
+      <mat-icon>account_tree</mat-icon>
+      Xem cay gia pha
+    </button>
+    <span class="toolbar-title">Cay pha he to tien</span>
+    <span class="toolbar-spacer"></span>
+
+    <!-- Zoom Controls -->
+    <button mat-icon-button (click)="zoomIn()" matTooltip="Phong to" [disabled]="!ancestorTree">
+      <mat-icon>zoom_in</mat-icon>
+    </button>
+    <button mat-icon-button (click)="zoomOut()" matTooltip="Thu nho" [disabled]="!ancestorTree">
+      <mat-icon>zoom_out</mat-icon>
+    </button>
+    <button mat-icon-button (click)="resetZoom()" matTooltip="Dat lai" [disabled]="!ancestorTree">
+      <mat-icon>center_focus_strong</mat-icon>
+    </button>
+  </mat-toolbar>
+
+  <!-- Loading Spinner -->
+  <div class="loading-spinner" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+    <p>Dang tai danh sach...</p>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" *ngIf="!loading">
+    <!-- Control Panel -->
+    <mat-card class="control-panel">
+      <mat-card-header>
+        <mat-card-title>Cay pha he cua {{ selectedIndividual?.fullName || '...' }}</mat-card-title>
+        <div class="user-profile-indicator" *ngIf="userProfile">
+          <mat-icon>verified_user</mat-icon>
+          <span>Ban da lien ket voi: <strong>{{ userProfile.individual.fullName }}</strong></span>
+          <button mat-icon-button (click)="unlinkMe()" matTooltip="Huy lien ket" class="unlink-btn">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="control-row">
+          <mat-form-field appearance="outline" class="individual-select">
+            <mat-label>Ca nhan</mat-label>
+            <input type="text"
+                   matInput
+                   [formControl]="individualSearchControl"
+                   [matAutocomplete]="auto"
+                   placeholder="Tim kiem ten...">
+            <mat-autocomplete #auto="matAutocomplete"
+                              [displayWith]="displayIndividual.bind(this)"
+                              (optionSelected)="onIndividualSelected($event.option.value)">
+              <mat-option *ngFor="let ind of filteredIndividuals$ | async" [value]="ind">
+                {{ displayIndividual(ind) }}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-icon matSuffix>person</mat-icon>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="generation-select">
+            <mat-label>The he</mat-label>
+            <mat-select [(value)]="selectedGenerations">
+              <mat-option *ngFor="let gen of generationOptions" [value]="gen">
+                {{ getGenerationLabel(gen) }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="control-row">
+          <div class="layout-selector">
+            <span class="layout-label">Trinh bay:</span>
+            <mat-radio-group [(ngModel)]="layoutDirection" class="layout-radio-group">
+              <mat-radio-button value="left" matTooltip="Hien thi tu phai sang trai">
+                <mat-icon>arrow_back</mat-icon> Trai
+              </mat-radio-button>
+              <mat-radio-button value="right" matTooltip="Hien thi tu trai sang phai">
+                <mat-icon>arrow_forward</mat-icon> Phai
+              </mat-radio-button>
+              <mat-radio-button value="up" matTooltip="Hien thi tu duoi len">
+                <mat-icon>arrow_upward</mat-icon> Len
+              </mat-radio-button>
+              <mat-radio-button value="down" matTooltip="Hien thi tu tren xuong">
+                <mat-icon>arrow_downward</mat-icon> Xuong
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          <button mat-raised-button
+                  color="primary"
+                  (click)="viewAncestorTree()"
+                  [disabled]="!selectedIndividual || loadingTree"
+                  class="view-button">
+            <mat-icon>visibility</mat-icon>
+            Xem
+          </button>
+
+          <button mat-stroked-button
+                  color="accent"
+                  (click)="linkMeToIndividual()"
+                  [disabled]="!selectedIndividual"
+                  matTooltip="Lien ket tai khoan cua ban voi nguoi nay"
+                  class="link-button">
+            <mat-icon>person_add</mat-icon>
+            Day la toi
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Tree Stats -->
+    <div class="tree-stats" *ngIf="ancestorTree">
+      <mat-chip-listbox>
+        <mat-chip>Tong to tien: {{ ancestorTree.totalAncestors }}</mat-chip>
+        <mat-chip>So the he: {{ ancestorTree.maxGeneration }}</mat-chip>
+      </mat-chip-listbox>
+    </div>
+
+    <!-- Loading Tree -->
+    <div class="loading-tree" *ngIf="loadingTree">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Dang xay dung cay pha he...</p>
+    </div>
+
+    <!-- Tree Container -->
+    <div #treeContainer class="tree-container" *ngIf="!loadingTree && ancestorTree"></div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!loadingTree && !ancestorTree">
+      <mat-icon>family_restroom</mat-icon>
+      <p>Chon mot nguoi va so the he de xem cay pha he to tien</p>
+    </div>
+
+    <!-- Legend -->
+    <mat-card class="legend-card" *ngIf="ancestorTree">
+      <mat-card-header>
+        <mat-card-title>Chu thich</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="legend-items">
+          <div class="legend-item" *ngFor="let gen of [0, 1, 2, 3, 4]; let i = index">
+            <span class="legend-color" [style.background-color]="getGenerationColor(gen)"></span>
+            <span class="legend-text">
+              <ng-container [ngSwitch]="gen">
+                <ng-container *ngSwitchCase="0">Ban than</ng-container>
+                <ng-container *ngSwitchCase="1">Cha Me</ng-container>
+                <ng-container *ngSwitchCase="2">Ong Ba</ng-container>
+                <ng-container *ngSwitchCase="3">Cu</ng-container>
+                <ng-container *ngSwitchCase="4">Ky</ng-container>
+              </ng-container>
+            </span>
+          </div>
+          <div class="legend-item gender">
+            <span class="legend-color male"></span>
+            <span class="legend-text">Nam</span>
+          </div>
+          <div class="legend-item gender">
+            <span class="legend-color female"></span>
+            <span class="legend-text">Nu</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

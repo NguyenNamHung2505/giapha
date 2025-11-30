@@ -1,0 +1,256 @@
+<div class="relationship-calculator-container">
+  <!-- Header -->
+  <div class="header">
+    <button mat-icon-button routerLink="/trees/{{treeId}}/visualize" [matTooltip]="'common.back' | translate">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ 'relationship.calculateRelationship' | translate }}</h1>
+  </div>
+
+  <!-- Selection Card -->
+  <mat-card class="selection-card">
+    <mat-card-header>
+      <mat-card-title>{{ 'relationship.selectTwoPeople' | translate }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <div class="selection-container" *ngIf="!loadingIndividuals; else loadingTemplate">
+        <!-- Person 1 -->
+        <div class="person-selection">
+          <div class="person-label">
+            <mat-icon>person</mat-icon>
+            <span>{{ 'relationship.person1' | translate }}</span>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'relationship.searchAndSelect' | translate }}</mat-label>
+            <input matInput
+                   [(ngModel)]="searchText1"
+                   (ngModelChange)="filterIndividuals1()"
+                   [matAutocomplete]="auto1">
+            <button mat-icon-button matSuffix *ngIf="selectedPerson1" (click)="clearPerson1()">
+              <mat-icon>close</mat-icon>
+            </button>
+            <mat-autocomplete #auto1="matAutocomplete" (optionSelected)="selectPerson1($event.option.value)">
+              <mat-option *ngFor="let ind of filteredIndividuals1" [value]="ind">
+                <div class="option-content">
+                  <mat-icon [style.color]="getGenderColor(ind.gender)">{{getGenderIcon(ind.gender)}}</mat-icon>
+                  <span class="option-name">{{ind.fullName}}</span>
+                  <span class="option-dates" *ngIf="ind.birthDate || ind.deathDate">
+                    ({{ind.birthDate || '?'}} - {{ind.deathDate || ''}})
+                  </span>
+                </div>
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <div class="selected-person" *ngIf="selectedPerson1">
+            <mat-icon [style.color]="getGenderColor(selectedPerson1.gender)">
+              {{getGenderIcon(selectedPerson1.gender)}}
+            </mat-icon>
+            <div class="person-info">
+              <span class="name">{{selectedPerson1.fullName}}</span>
+              <span class="dates" *ngIf="selectedPerson1.birthDate || selectedPerson1.deathDate">
+                {{selectedPerson1.birthDate || '?'}} - {{selectedPerson1.deathDate || ('individual.living' | translate)}}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Swap Button -->
+        <div class="swap-container">
+          <button mat-fab color="primary" (click)="swapPersons()" [matTooltip]="'relationship.swap' | translate">
+            <mat-icon>swap_horiz</mat-icon>
+          </button>
+        </div>
+
+        <!-- Person 2 -->
+        <div class="person-selection">
+          <div class="person-label">
+            <mat-icon>person</mat-icon>
+            <span>{{ 'relationship.person2' | translate }}</span>
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ 'relationship.searchAndSelect' | translate }}</mat-label>
+            <input matInput
+                   [(ngModel)]="searchText2"
+                   (ngModelChange)="filterIndividuals2()"
+                   [matAutocomplete]="auto2">
+            <button mat-icon-button matSuffix *ngIf="selectedPerson2" (click)="clearPerson2()">
+              <mat-icon>close</mat-icon>
+            </button>
+            <mat-autocomplete #auto2="matAutocomplete" (optionSelected)="selectPerson2($event.option.value)">
+              <mat-option *ngFor="let ind of filteredIndividuals2" [value]="ind">
+                <div class="option-content">
+                  <mat-icon [style.color]="getGenderColor(ind.gender)">{{getGenderIcon(ind.gender)}}</mat-icon>
+                  <span class="option-name">{{ind.fullName}}</span>
+                  <span class="option-dates" *ngIf="ind.birthDate || ind.deathDate">
+                    ({{ind.birthDate || '?'}} - {{ind.deathDate || ''}})
+                  </span>
+                </div>
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <div class="selected-person" *ngIf="selectedPerson2">
+            <mat-icon [style.color]="getGenderColor(selectedPerson2.gender)">
+              {{getGenderIcon(selectedPerson2.gender)}}
+            </mat-icon>
+            <div class="person-info">
+              <span class="name">{{selectedPerson2.fullName}}</span>
+              <span class="dates" *ngIf="selectedPerson2.birthDate || selectedPerson2.deathDate">
+                {{selectedPerson2.birthDate || '?'}} - {{selectedPerson2.deathDate || ('individual.living' | translate)}}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #loadingTemplate>
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <span>{{ 'common.loading' | translate }}</span>
+        </div>
+      </ng-template>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-raised-button color="primary"
+              [disabled]="!canCalculate()"
+              (click)="calculateRelationship()">
+        <mat-icon>calculate</mat-icon>
+        {{ 'relationship.calculate' | translate }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- Calculating Spinner -->
+  <div class="calculating-container" *ngIf="calculating">
+    <mat-spinner diameter="50"></mat-spinner>
+    <span>{{ 'common.loading' | translate }}</span>
+  </div>
+
+  <!-- Result Card -->
+  <mat-card class="result-card" *ngIf="result && !calculating">
+    <mat-card-header>
+      <mat-icon mat-card-avatar
+                [style.background-color]="getCategoryColor(result.category)"
+                class="category-icon">
+        {{getCategoryIcon(result.category)}}
+      </mat-icon>
+      <mat-card-title>{{ 'relationship.result' | translate }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Not Related -->
+      <div class="not-related" *ngIf="!result.relationshipFound">
+        <mat-icon>sentiment_dissatisfied</mat-icon>
+        <h3>{{ 'relationship.noRelationshipFound' | translate }}</h3>
+        <p class="hint">{{ 'relationship.noRelationshipHint' | translate }}</p>
+      </div>
+
+      <!-- Relationship Found -->
+      <div class="relationship-found" *ngIf="result.relationshipFound">
+        <!-- Category Badge -->
+        <div class="category-badge" [style.background-color]="getCategoryColor(result.category)">
+          <mat-icon>{{getCategoryIcon(result.category)}}</mat-icon>
+          <span>{{ isVietnamese() ? getCategoryLabelVi(result.category) : getCategoryLabel(result.category) }}</span>
+        </div>
+
+        <!-- Main Relationship Display -->
+        <div class="main-relationship">
+          <!-- Person 1 perspective -->
+          <div class="relationship-perspective">
+            <div class="person-box">
+              <mat-icon [style.color]="getGenderColor(result.person1.gender)">
+                {{getGenderIcon(result.person1.gender)}}
+              </mat-icon>
+              <span class="name">{{result.person1.fullName}}</span>
+            </div>
+            <div class="relationship-arrow">
+              <span class="arrow-line"></span>
+              <div class="relationship-label">
+                <span>{{ 'relationship.isTheOf' | translate }} <strong>{{ isVietnamese() ? result.relationshipFromPerson1Vi : result.relationshipFromPerson1 }}</strong> {{ 'relationship.of' | translate }}</span>
+              </div>
+              <span class="arrow-head">&#9654;</span>
+            </div>
+            <div class="person-box">
+              <mat-icon [style.color]="getGenderColor(result.person2.gender)">
+                {{getGenderIcon(result.person2.gender)}}
+              </mat-icon>
+              <span class="name">{{result.person2.fullName}}</span>
+            </div>
+          </div>
+
+          <mat-divider></mat-divider>
+
+          <!-- Person 2 perspective -->
+          <div class="relationship-perspective reverse">
+            <div class="person-box">
+              <mat-icon [style.color]="getGenderColor(result.person2.gender)">
+                {{getGenderIcon(result.person2.gender)}}
+              </mat-icon>
+              <span class="name">{{result.person2.fullName}}</span>
+            </div>
+            <div class="relationship-arrow">
+              <span class="arrow-line"></span>
+              <div class="relationship-label">
+                <span>{{ 'relationship.isTheOf' | translate }} <strong>{{ isVietnamese() ? result.relationshipFromPerson2Vi : result.relationshipFromPerson2 }}</strong> {{ 'relationship.of' | translate }}</span>
+              </div>
+              <span class="arrow-head">&#9654;</span>
+            </div>
+            <div class="person-box">
+              <mat-icon [style.color]="getGenderColor(result.person1.gender)">
+                {{getGenderIcon(result.person1.gender)}}
+              </mat-icon>
+              <span class="name">{{result.person1.fullName}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generation Info -->
+        <div class="generation-info">
+          <mat-icon>layers</mat-icon>
+          <div class="generation-text">
+            <span>{{ isVietnamese() ? getGenerationTextVi() : getGenerationText() }}</span>
+          </div>
+        </div>
+
+        <!-- Common Ancestor -->
+        <div class="common-ancestor" *ngIf="result.commonAncestor">
+          <mat-icon>account_tree</mat-icon>
+          <div class="ancestor-info">
+            <span class="label">{{ 'relationship.commonAncestor' | translate }}:</span>
+            <span class="name">{{result.commonAncestor.fullName}}</span>
+          </div>
+        </div>
+
+        <!-- Path Display -->
+        <div class="path-section" *ngIf="result.path && result.path.length > 1">
+          <h4>
+            <mat-icon>timeline</mat-icon>
+            {{ 'relationship.relationshipPathTitle' | translate }}
+          </h4>
+          <div class="path-container">
+            <div class="path-step" *ngFor="let step of result.path; let i = index; let last = last">
+              <div class="step-person">
+                <mat-icon [style.color]="getGenderColor(step.person.gender)">
+                  {{getGenderIcon(step.person.gender)}}
+                </mat-icon>
+                <span>{{step.person.fullName}}</span>
+              </div>
+              <div class="step-connector" *ngIf="!last">
+                <div class="connector-line"></div>
+                <div class="connector-label">
+                  <span>{{ isVietnamese() ? step.relationshipToNextVi : step.relationshipToNext }}</span>
+                </div>
+                <mat-icon class="connector-arrow">arrow_downward</mat-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
