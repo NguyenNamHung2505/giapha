@@ -8,7 +8,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class CollaborationService {
-  private apiUrl = `${environment.apiUrl || 'http://localhost:8080/api'}`;
+  private apiUrl = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 

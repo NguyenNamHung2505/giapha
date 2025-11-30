@@ -10,7 +10,15 @@
       "Bash(docker-compose up:*)",
       "Bash(npx tsc:*)",
       "Bash(mvn clean compile:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(dir /s /b \"G:\\Giapha\\backend\\src\\main\\resources\")",
+      "Bash(findstr:*)",
+      "Bash(./mvnw clean compile:*)",
+      "Bash(.mvnw clean compile:*)",
+      "Bash(PGPASSWORD=familytree_password psql:*)",
+      "Bash(docker exec:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

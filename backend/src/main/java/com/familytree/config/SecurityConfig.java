@@ -72,6 +72,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                 .authorizeRequests()
                     .antMatchers("/",
+                            "/error",
                             "/favicon.ico",
                             "/**/*.png",
                             "/**/*.gif",
@@ -82,6 +83,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                             "/**/*.js")
                         .permitAll()
                     .antMatchers("/api/auth/**")
+                        .permitAll()
+                    // Allow public access to view avatars (GET only)
+                    .antMatchers(HttpMethod.GET, "/api/trees/*/individuals/*/avatar")
                         .permitAll()
                     .anyRequest()
                         .authenticated();
@@ -99,7 +103,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:3000"));
+        configuration.addAllowedOriginPattern("*");
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

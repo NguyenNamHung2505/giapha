@@ -23,6 +23,7 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "users", indexes = {
+    @Index(name = "idx_user_username", columnList = "username"),
     @Index(name = "idx_user_email", columnList = "email")
 })
 @EntityListeners(AuditingEntityListener.class)
@@ -39,9 +40,13 @@ public class User {
     private UUID id;
 
     @NotBlank
+    @Size(min = 3, max = 50)
+    @Column(nullable = false, unique = true)
+    private String username;
+
     @Email
     @Size(max = 255)
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String email;
 
     @NotBlank
@@ -53,6 +58,14 @@ public class User {
     @Size(max = 255)
     @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    private boolean admin = false;
+
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    @Builder.Default
+    private boolean enabled = true;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

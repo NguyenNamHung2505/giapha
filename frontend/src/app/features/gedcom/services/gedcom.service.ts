@@ -12,7 +12,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class GedcomService {
-  private apiUrl = `${environment.apiUrl || 'http://localhost:8080/api'}/trees`;
+  private apiUrl = `${environment.apiUrl}/trees`;
 
   constructor(private http: HttpClient) {}
 

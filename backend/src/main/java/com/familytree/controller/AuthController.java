@@ -1,5 +1,6 @@
 package com.familytree.controller;
 
+import com.familytree.dto.request.ChangePasswordRequest;
 import com.familytree.dto.request.LoginRequest;
 import com.familytree.dto.request.RegisterRequest;
 import com.familytree.dto.response.JwtAuthenticationResponse;
@@ -57,6 +58,17 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return ResponseEntity.ok(UserResponse.fromUser(user));
+    }
+
+    /**
+     * Change password for authenticated user
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<MessageResponse> changePassword(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        authService.changePassword(userPrincipal.getId(), request);
+        return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
     }
 
     /**

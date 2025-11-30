@@ -17,7 +17,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/invitations")
-@CrossOrigin(origins = "http://localhost:4200")
 @Slf4j
 @RequiredArgsConstructor
 public class InvitationController {

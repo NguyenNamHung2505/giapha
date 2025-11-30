@@ -12,6 +12,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { IndividualService } from '../services/individual.service';
 import { Individual, Gender } from '../models/individual.model';
 
@@ -31,7 +32,8 @@ import { Individual, Gender } from '../models/individual.model';
     MatDatepickerModule,
     MatNativeDateModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    TranslateModule
   ],
   templateUrl: './individual-form.component.html',
   styleUrl: './individual-form.component.scss'
@@ -50,12 +52,14 @@ export class IndividualFormComponent implements OnInit {
     private individualService: IndividualService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
     this.individualForm = this.formBuilder.group({
       givenName: ['', [Validators.maxLength(255)]],
+      middleName: ['', [Validators.maxLength(255)]],
       surname: ['', [Validators.maxLength(255)]],
       suffix: ['', [Validators.maxLength(50)]],
       gender: [''],
@@ -63,7 +67,10 @@ export class IndividualFormComponent implements OnInit {
       birthPlace: ['', [Validators.maxLength(500)]],
       deathDate: [''],
       deathPlace: ['', [Validators.maxLength(500)]],
-      biography: ['', [Validators.maxLength(10000)]]
+      biography: ['', [Validators.maxLength(10000)]],
+      notes: ['', [Validators.maxLength(10000)]],
+      facebookLink: ['', [Validators.maxLength(500)]],
+      phoneNumber: ['', [Validators.maxLength(20)]]
     });
 
     // Get tree ID and individual ID from route
@@ -85,6 +92,7 @@ export class IndividualFormComponent implements OnInit {
         this.individual = individual;
         this.individualForm.patchValue({
           givenName: individual.givenName,
+          middleName: individual.middleName,
           surname: individual.surname,
           suffix: individual.suffix,
           gender: individual.gender,
@@ -92,13 +100,18 @@ export class IndividualFormComponent implements OnInit {
           birthPlace: individual.birthPlace,
           deathDate: individual.deathDate ? new Date(individual.deathDate) : null,
           deathPlace: individual.deathPlace,
-          biography: individual.biography
+          biography: individual.biography,
+          notes: individual.notes,
+          facebookLink: individual.facebookLink,
+          phoneNumber: individual.phoneNumber
         });
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading individual:', error);
-        this.snackBar.open('Failed to load individual', 'Close', { duration: 3000 });
+        this.translate.get(['individual.loadFailed', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['individual.loadFailed'], t['common.close'], { duration: 3000 });
+        });
         this.router.navigate(['/trees', treeId, 'individuals']);
       }
     });
@@ -110,6 +123,10 @@ export class IndividualFormComponent implements OnInit {
 
   get surname() {
     return this.individualForm.get('surname');
+  }
+
+  get middleName() {
+    return this.individualForm.get('middleName');
   }
 
   get suffix() {
@@ -128,6 +145,18 @@ export class IndividualFormComponent implements OnInit {
     return this.individualForm.get('biography');
   }
 
+  get notes() {
+    return this.individualForm.get('notes');
+  }
+
+  get facebookLink() {
+    return this.individualForm.get('facebookLink');
+  }
+
+  get phoneNumber() {
+    return this.individualForm.get('phoneNumber');
+  }
+
   onSubmit(): void {
     if (this.individualForm.invalid) {
       return;
@@ -136,23 +165,27 @@ export class IndividualFormComponent implements OnInit {
     this.loading = true;
     const formValue = this.individualForm.value;
 
-    // Convert dates to ISO string format
+    // Convert dates to YYYY-MM-DD format without timezone conversion
     const request = {
       ...formValue,
-      birthDate: formValue.birthDate ? new Date(formValue.birthDate).toISOString().split('T')[0] : null,
-      deathDate: formValue.deathDate ? new Date(formValue.deathDate).toISOString().split('T')[0] : null
+      birthDate: formValue.birthDate ? this.formatDateToLocal(formValue.birthDate) : null,
+      deathDate: formValue.deathDate ? this.formatDateToLocal(formValue.deathDate) : null
     };
 
     if (this.isEditMode && this.individualId) {
       // Update existing individual
       this.individualService.updateIndividual(this.treeId, this.individualId, request).subscribe({
         next: () => {
-          this.snackBar.open('Individual updated successfully', 'Close', { duration: 3000 });
+          this.translate.get(['individual.updateSuccess', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['individual.updateSuccess'], t['common.close'], { duration: 3000 });
+          });
           this.router.navigate(['/trees', this.treeId, 'individuals']);
         },
         error: (error) => {
           console.error('Error updating individual:', error);
-          this.snackBar.open('Failed to update individual', 'Close', { duration: 3000 });
+          this.translate.get(['individual.updateFailed', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['individual.updateFailed'], t['common.close'], { duration: 3000 });
+          });
           this.loading = false;
         }
       });
@@ -160,12 +193,16 @@ export class IndividualFormComponent implements OnInit {
       // Create new individual
       this.individualService.createIndividual(this.treeId, request).subscribe({
         next: (individual) => {
-          this.snackBar.open('Individual created successfully', 'Close', { duration: 3000 });
+          this.translate.get(['individual.createSuccess', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['individual.createSuccess'], t['common.close'], { duration: 3000 });
+          });
           this.router.navigate(['/trees', this.treeId, 'individuals', individual.id]);
         },
         error: (error) => {
           console.error('Error creating individual:', error);
-          this.snackBar.open('Failed to create individual', 'Close', { duration: 3000 });
+          this.translate.get(['individual.createFailed', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['individual.createFailed'], t['common.close'], { duration: 3000 });
+          });
           this.loading = false;
         }
       });
@@ -174,5 +211,16 @@ export class IndividualFormComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/trees', this.treeId, 'individuals']);
+  }
+
+  /**
+   * Format date to YYYY-MM-DD without timezone conversion
+   */
+  private formatDateToLocal(date: Date | string): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 }

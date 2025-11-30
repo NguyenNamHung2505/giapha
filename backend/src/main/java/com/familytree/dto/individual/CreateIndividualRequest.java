@@ -21,6 +21,9 @@ public class CreateIndividualRequest {
     @Size(max = 255, message = "Given name must not exceed 255 characters")
     private String givenName;
 
+    @Size(max = 255, message = "Middle name must not exceed 255 characters")
+    private String middleName;
+
     @Size(max = 255, message = "Surname must not exceed 255 characters")
     private String surname;
 
@@ -41,4 +44,13 @@ public class CreateIndividualRequest {
 
     @Size(max = 10000, message = "Biography must not exceed 10000 characters")
     private String biography;
+
+    @Size(max = 10000, message = "Notes must not exceed 10000 characters")
+    private String notes;
+
+    @Size(max = 500, message = "Facebook link must not exceed 500 characters")
+    private String facebookLink;
+
+    @Size(max = 20, message = "Phone number must not exceed 20 characters")
+    private String phoneNumber;
 }

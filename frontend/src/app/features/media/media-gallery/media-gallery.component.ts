@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MediaService } from '../services/media.service';
 import { Media, MediaType } from '../models/media.model';
 import { environment } from '../../../../environments/environment';
@@ -28,7 +29,8 @@ import { environment } from '../../../../environments/environment';
     MatFormFieldModule,
     MatInputModule,
     MatProgressSpinnerModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslateModule
   ],
   templateUrl: './media-gallery.component.html',
   styleUrl: './media-gallery.component.scss'
@@ -48,7 +50,8 @@ export class MediaGalleryComponent implements OnInit, OnChanges {
   constructor(
     private mediaService: MediaService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -83,7 +86,9 @@ export class MediaGalleryComponent implements OnInit, OnChanges {
       },
       error: (error) => {
         console.error('Error loading media:', error);
-        this.snackBar.open('Error loading media', 'Close', { duration: 3000 });
+        this.translate.get(['media.loadFailed', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['media.loadFailed'], t['common.close'], { duration: 3000 });
+        });
         this.loading = false;
       }
     });
@@ -170,7 +175,9 @@ export class MediaGalleryComponent implements OnInit, OnChanges {
         },
         error: (error) => {
           console.error('Error opening media:', error);
-          this.snackBar.open('Error opening media', 'Close', { duration: 3000 });
+          this.translate.get(['errors.generic', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['errors.generic'], t['common.close'], { duration: 3000 });
+          });
         }
       });
     } else {
@@ -218,11 +225,15 @@ export class MediaGalleryComponent implements OnInit, OnChanges {
 
         this.editingCaption[media.id] = false;
         delete this.editedCaptions[media.id];
-        this.snackBar.open('Caption updated', 'Close', { duration: 2000 });
+        this.translate.get(['common.success', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['common.success'], t['common.close'], { duration: 2000 });
+        });
       },
       error: (error) => {
         console.error('Error updating caption:', error);
-        this.snackBar.open('Error updating caption', 'Close', { duration: 3000 });
+        this.translate.get(['errors.generic', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['errors.generic'], t['common.close'], { duration: 3000 });
+        });
       }
     });
   }
@@ -231,19 +242,25 @@ export class MediaGalleryComponent implements OnInit, OnChanges {
    * Delete media
    */
   deleteMedia(media: Media): void {
-    if (!confirm(`Are you sure you want to delete "${media.filename}"?`)) {
-      return;
-    }
-
-    this.mediaService.deleteMedia(media.id).subscribe({
-      next: () => {
-        this.mediaList = this.mediaList.filter(m => m.id !== media.id);
-        this.snackBar.open('Media deleted', 'Close', { duration: 2000 });
-      },
-      error: (error) => {
-        console.error('Error deleting media:', error);
-        this.snackBar.open('Error deleting media', 'Close', { duration: 3000 });
+    this.translate.get('media.deleteConfirm', { name: media.filename }).subscribe(msg => {
+      if (!confirm(msg)) {
+        return;
       }
+
+      this.mediaService.deleteMedia(media.id).subscribe({
+        next: () => {
+          this.mediaList = this.mediaList.filter(m => m.id !== media.id);
+          this.translate.get(['media.deleteSuccess', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['media.deleteSuccess'], t['common.close'], { duration: 2000 });
+          });
+        },
+        error: (error) => {
+          console.error('Error deleting media:', error);
+          this.translate.get(['media.deleteFailed', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['media.deleteFailed'], t['common.close'], { duration: 3000 });
+          });
+        }
+      });
     });
   }
 

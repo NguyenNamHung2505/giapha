@@ -1,7 +1,7 @@
 <div class="detail-container">
   <div class="loading-spinner" *ngIf="loading">
     <mat-spinner></mat-spinner>
-    <p>Loading individual...</p>
+    <p>{{ 'common.loading' | translate }}</p>
   </div>
 
   <div *ngIf="!loading && individual" class="detail-content">
@@ -24,15 +24,36 @@
               <input #fileInput type="file" accept="image/*" (change)="onAvatarSelected($event)" style="display: none">
               <button mat-stroked-button color="primary" (click)="fileInput.click()">
                 <mat-icon>upload</mat-icon>
-                {{ individual.profilePictureUrl ? 'Change' : 'Upload' }} Avatar
+                {{ individual.profilePictureUrl ? ('individual.changeAvatar' | translate) : ('individual.uploadAvatar' | translate) }}
               </button>
               <button *ngIf="individual.profilePictureUrl"
                       mat-stroked-button
                       color="warn"
                       (click)="deleteAvatar()">
                 <mat-icon>delete</mat-icon>
-                Remove Avatar
+                {{ 'individual.removeAvatar' | translate }}
               </button>
+            </div>
+            <!-- View in Tree dropdown - shows when person exists in multiple trees -->
+            <div class="view-in-tree-section" *ngIf="cloneInfo && cloneInfo.allTreeLocations && cloneInfo.allTreeLocations.length > 1">
+              <button mat-raised-button color="accent" [matMenuTriggerFor]="treeMenu" class="view-tree-btn">
+                <mat-icon>account_tree</mat-icon>
+                {{ 'individual.viewInTree.button' | translate }}
+                <mat-icon>arrow_drop_down</mat-icon>
+              </button>
+              <mat-menu #treeMenu="matMenu">
+                <button mat-menu-item
+                        *ngFor="let location of cloneInfo.allTreeLocations"
+                        (click)="viewInTree(location)"
+                        [class.current-tree]="location.isCurrentTree">
+                  <mat-icon *ngIf="location.isCurrentTree" color="primary">check</mat-icon>
+                  <mat-icon *ngIf="!location.isCurrentTree && location.isSourceTree">source</mat-icon>
+                  <mat-icon *ngIf="!location.isCurrentTree && !location.isSourceTree">content_copy</mat-icon>
+                  <span>{{ location.treeName }}</span>
+                  <span class="tree-badge" *ngIf="location.isCurrentTree">({{ 'individual.viewInTree.current' | translate }})</span>
+                  <span class="tree-badge source" *ngIf="!location.isCurrentTree && location.isSourceTree">({{ 'individual.viewInTree.source' | translate }})</span>
+                </button>
+              </mat-menu>
             </div>
           </div>
 
@@ -41,25 +62,81 @@
               <div>
                 <h1>{{ individual.fullName }}</h1>
                 <p class="life-years">{{ getLifeYears() }}</p>
-                <p class="age" *ngIf="getAge()">Age: {{ getAge() }} years</p>
+                <p class="age" *ngIf="getAge()">{{ 'individual.age' | translate }}: {{ getAge() }} {{ 'individual.years' | translate }}</p>
               </div>
             </div>
-            <mat-chip *ngIf="individual.gender" class="gender-chip">{{ individual.gender }}</mat-chip>
+            <mat-chip *ngIf="individual.gender" class="gender-chip">
+              {{ individual.gender === 'MALE' ? ('individual.male' | translate) : (individual.gender === 'FEMALE' ? ('individual.female' | translate) : individual.gender) }}
+            </mat-chip>
           </div>
 
           <div class="action-buttons">
             <button mat-button (click)="back()">
               <mat-icon>arrow_back</mat-icon>
-              Back
+              {{ 'common.back' | translate }}
             </button>
             <button mat-button color="primary" (click)="editIndividual()">
               <mat-icon>edit</mat-icon>
-              Edit
+              {{ 'common.edit' | translate }}
+            </button>
+            <button mat-button color="accent" (click)="createTreeFromIndividual()"
+                    [matTooltip]="'tree.createFromIndividual.tooltip' | translate"
+                    *ngIf="isSystemAdmin">
+              <mat-icon>account_tree</mat-icon>
+              {{ 'tree.createFromIndividual.button' | translate }}
             </button>
             <button mat-button color="warn" (click)="deleteIndividual()">
               <mat-icon>delete</mat-icon>
-              Delete
+              {{ 'common.delete' | translate }}
             </button>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Clone Info Section -->
+    <mat-card class="clone-info-card" *ngIf="cloneInfo && (cloneInfo.hasClones || cloneInfo.clone)">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>content_copy</mat-icon>
+        <mat-card-title>{{ 'individual.cloneInfo.title' | translate }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <!-- Source Info (if this is a clone) -->
+        <div class="source-info" *ngIf="cloneInfo.clone && cloneInfo.sourceInfo">
+          <div class="info-label">
+            <mat-icon>source</mat-icon>
+            {{ 'individual.cloneInfo.clonedFrom' | translate }}
+          </div>
+          <div class="tree-link">
+            <a [routerLink]="['/trees', cloneInfo.sourceInfo.sourceTreeId, 'individuals', cloneInfo.sourceInfo.sourceIndividualId]">
+              <mat-icon>account_tree</mat-icon>
+              {{ cloneInfo.sourceInfo.sourceTreeName }} - {{ cloneInfo.sourceInfo.sourceIndividualName }}
+            </a>
+            <span class="clone-date">
+              ({{ cloneInfo.sourceInfo.clonedAt | date:'short' }})
+            </span>
+          </div>
+        </div>
+
+        <!-- Cloned To Trees (if this has been cloned) -->
+        <div class="cloned-to-info" *ngIf="cloneInfo.hasClones && cloneInfo.clonedToTrees.length > 0">
+          <div class="info-label">
+            <mat-icon>fork_right</mat-icon>
+            {{ 'individual.cloneInfo.clonedTo' | translate }}
+          </div>
+          <div class="tree-links">
+            <div class="tree-link" *ngFor="let clonedTree of cloneInfo.clonedToTrees">
+              <a [routerLink]="['/trees', clonedTree.clonedTreeId, 'individuals', clonedTree.clonedIndividualId]">
+                <mat-icon>account_tree</mat-icon>
+                {{ clonedTree.clonedTreeName }}
+                <mat-chip *ngIf="clonedTree.isRootOfClone" class="root-chip">
+                  {{ 'individual.cloneInfo.rootPerson' | translate }}
+                </mat-chip>
+              </a>
+              <span class="clone-date">
+                ({{ clonedTree.clonedAt | date:'short' }})
+              </span>
+            </div>
           </div>
         </div>
       </mat-card-content>
@@ -68,43 +145,65 @@
     <!-- Personal Information -->
     <mat-card class="info-card">
       <mat-card-header>
-        <mat-card-title>Personal Information</mat-card-title>
+        <mat-card-title>{{ 'individual.basicInfo' | translate }}</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <div class="info-grid">
           <div class="info-item" *ngIf="individual.givenName">
-            <label>Given Name:</label>
+            <label>{{ 'individual.givenName' | translate }}:</label>
             <span>{{ individual.givenName }}</span>
           </div>
           <div class="info-item" *ngIf="individual.surname">
-            <label>Surname:</label>
+            <label>{{ 'individual.surname' | translate }}:</label>
             <span>{{ individual.surname }}</span>
           </div>
           <div class="info-item" *ngIf="individual.suffix">
-            <label>Suffix:</label>
+            <label>{{ 'individual.suffix' | translate }}:</label>
             <span>{{ individual.suffix }}</span>
           </div>
           <div class="info-item" *ngIf="individual.birthDate">
-            <label>Birth Date:</label>
-            <span>{{ individual.birthDate | date: 'mediumDate' }}</span>
+            <label>{{ 'individual.birthDate' | translate }}:</label>
+            <span>{{ individual.birthDate | localeDate: 'longDate' }}</span>
           </div>
           <div class="info-item" *ngIf="individual.birthPlace">
-            <label>Birth Place:</label>
+            <label>{{ 'individual.birthPlace' | translate }}:</label>
             <span>{{ individual.birthPlace }}</span>
           </div>
           <div class="info-item" *ngIf="individual.deathDate">
-            <label>Death Date:</label>
-            <span>{{ individual.deathDate | date: 'mediumDate' }}</span>
+            <label>{{ 'individual.deathDate' | translate }}:</label>
+            <span>{{ individual.deathDate | localeDate: 'longDate' }}</span>
           </div>
           <div class="info-item" *ngIf="individual.deathPlace">
-            <label>Death Place:</label>
+            <label>{{ 'individual.deathPlace' | translate }}:</label>
             <span>{{ individual.deathPlace }}</span>
           </div>
         </div>
 
+        <!-- Contact Information -->
+        <div class="contact-section" *ngIf="individual.phoneNumber || individual.facebookLink">
+          <h3>{{ 'individual.contactInfo' | translate }}</h3>
+          <div class="contact-items">
+            <div class="contact-item" *ngIf="individual.phoneNumber">
+              <mat-icon>phone</mat-icon>
+              <a [href]="'tel:' + individual.phoneNumber">{{ individual.phoneNumber }}</a>
+            </div>
+            <div class="contact-item" *ngIf="individual.facebookLink">
+              <mat-icon>facebook</mat-icon>
+              <a [href]="individual.facebookLink" target="_blank" rel="noopener noreferrer">
+                {{ individual.facebookLink }}
+              </a>
+            </div>
+          </div>
+        </div>
+
         <div class="biography-section" *ngIf="individual.biography">
-          <label>Biography:</label>
+          <label>{{ 'individual.biography' | translate }}:</label>
           <p>{{ individual.biography }}</p>
+        </div>
+
+        <div class="notes-section" *ngIf="individual.notes">
+          <label>{{ 'individual.notes' | translate }}:</label>
+          <p>{{ individual.notes }}</p>
         </div>
       </mat-card-content>
     </mat-card>
@@ -113,19 +212,71 @@
     <mat-card class="tabs-card">
       <mat-tab-group>
         <!-- Relationships Tab -->
-        <mat-tab label="Relationships">
+        <mat-tab [label]="'relationship.relationships' | translate">
           <div class="tab-content">
             <!-- Add Relationship Button -->
             <div class="relationship-header">
               <button mat-raised-button color="primary" (click)="addRelationship()">
                 <mat-icon>add</mat-icon>
-                Add Relationship
+                {{ 'relationship.addRelationship' | translate }}
               </button>
             </div>
 
-            <!-- Parents -->
+            <!-- Mothers -->
+            <div class="relationship-section" *ngIf="mothers.length > 0">
+              <h3><mat-icon>woman</mat-icon> {{ 'relationship.mother' | translate }}</h3>
+              <div class="relationship-list">
+                <mat-chip-listbox>
+                  <mat-chip *ngFor="let rel of mothers">
+                    <span (click)="goToIndividual(rel.individual1.id)" style="cursor: pointer;">
+                      {{ rel.individual1.fullName }}
+                    </span>
+                    <span class="dates" *ngIf="rel.individual1.birthDate || rel.individual1.deathDate">
+                      ({{ rel.individual1.birthDate ? (rel.individual1.birthDate | date: 'yyyy') : '?' }} -
+                       {{ rel.individual1.deathDate ? (rel.individual1.deathDate | date: 'yyyy') : ('individual.living' | translate) }})
+                    </span>
+                    <button mat-icon-button
+                            matChipRemove
+                            (click)="deleteRelationship(rel.id, 'mother')"
+                            [matTooltip]="'relationship.deleteRelationship' | translate">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </mat-chip>
+                </mat-chip-listbox>
+              </div>
+            </div>
+
+            <mat-divider *ngIf="mothers.length > 0 && (fathers.length > 0 || parents.length > 0 || spouses.length > 0 || children.length > 0)"></mat-divider>
+
+            <!-- Fathers -->
+            <div class="relationship-section" *ngIf="fathers.length > 0">
+              <h3><mat-icon>man</mat-icon> {{ 'relationship.father' | translate }}</h3>
+              <div class="relationship-list">
+                <mat-chip-listbox>
+                  <mat-chip *ngFor="let rel of fathers">
+                    <span (click)="goToIndividual(rel.individual1.id)" style="cursor: pointer;">
+                      {{ rel.individual1.fullName }}
+                    </span>
+                    <span class="dates" *ngIf="rel.individual1.birthDate || rel.individual1.deathDate">
+                      ({{ rel.individual1.birthDate ? (rel.individual1.birthDate | date: 'yyyy') : '?' }} -
+                       {{ rel.individual1.deathDate ? (rel.individual1.deathDate | date: 'yyyy') : ('individual.living' | translate) }})
+                    </span>
+                    <button mat-icon-button
+                            matChipRemove
+                            (click)="deleteRelationship(rel.id, 'father')"
+                            [matTooltip]="'relationship.deleteRelationship' | translate">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </mat-chip>
+                </mat-chip-listbox>
+              </div>
+            </div>
+
+            <mat-divider *ngIf="fathers.length > 0 && (parents.length > 0 || spouses.length > 0 || children.length > 0)"></mat-divider>
+
+            <!-- Parents (Generic) -->
             <div class="relationship-section" *ngIf="parents.length > 0">
-              <h3><mat-icon>supervisor_account</mat-icon> Parents</h3>
+              <h3><mat-icon>supervisor_account</mat-icon> {{ 'relationship.parents' | translate }}</h3>
               <div class="relationship-list">
                 <mat-chip-listbox>
                   <mat-chip *ngFor="let rel of parents">
@@ -134,12 +285,12 @@
                     </span>
                     <span class="dates" *ngIf="rel.individual1.birthDate || rel.individual1.deathDate">
                       ({{ rel.individual1.birthDate ? (rel.individual1.birthDate | date: 'yyyy') : '?' }} -
-                       {{ rel.individual1.deathDate ? (rel.individual1.deathDate | date: 'yyyy') : 'present' }})
+                       {{ rel.individual1.deathDate ? (rel.individual1.deathDate | date: 'yyyy') : ('individual.living' | translate) }})
                     </span>
-                    <button mat-icon-button 
-                            matChipRemove 
+                    <button mat-icon-button
+                            matChipRemove
                             (click)="deleteRelationship(rel.id, 'parent')"
-                            matTooltip="Delete relationship">
+                            [matTooltip]="'relationship.deleteRelationship' | translate">
                       <mat-icon>close</mat-icon>
                     </button>
                   </mat-chip>
@@ -147,27 +298,27 @@
               </div>
             </div>
 
-            <mat-divider *ngIf="parents.length > 0 && (spouses.length > 0 || children.length > 0)"></mat-divider>
+            <mat-divider *ngIf="(mothers.length > 0 || fathers.length > 0 || parents.length > 0) && (spouses.length > 0 || children.length > 0)"></mat-divider>
 
             <!-- Spouses/Partners -->
             <div class="relationship-section" *ngIf="spouses.length > 0">
-              <h3><mat-icon>favorite</mat-icon> Spouses & Partners</h3>
+              <h3><mat-icon>favorite</mat-icon> {{ 'relationship.spousesPartners' | translate }}</h3>
               <div class="relationship-list">
                 <mat-chip-listbox>
                   <mat-chip *ngFor="let rel of spouses">
-                    <span (click)="goToIndividual(rel.individual1.id === individualId ? rel.individual2.id : rel.individual1.id)" 
+                    <span (click)="goToIndividual(rel.individual1.id === individualId ? rel.individual2.id : rel.individual1.id)"
                           style="cursor: pointer;">
                       {{ rel.individual1.id === individualId ? rel.individual2.fullName : rel.individual1.fullName }}
                     </span>
-                    <span class="relationship-type">{{ rel.type }}</span>
+                    <span class="relationship-type">{{ translateRelationType(rel.type) }}</span>
                     <span class="dates" *ngIf="rel.startDate || rel.endDate">
                       ({{ rel.startDate ? (rel.startDate | date: 'yyyy') : '?' }} -
-                       {{ rel.endDate ? (rel.endDate | date: 'yyyy') : 'present' }})
+                       {{ rel.endDate ? (rel.endDate | date: 'yyyy') : ('individual.living' | translate) }})
                     </span>
-                    <button mat-icon-button 
-                            matChipRemove 
+                    <button mat-icon-button
+                            matChipRemove
                             (click)="deleteRelationship(rel.id, rel.type)"
-                            matTooltip="Delete relationship">
+                            [matTooltip]="'relationship.deleteRelationship' | translate">
                       <mat-icon>close</mat-icon>
                     </button>
                   </mat-chip>
@@ -179,7 +330,7 @@
 
             <!-- Children -->
             <div class="relationship-section" *ngIf="children.length > 0">
-              <h3><mat-icon>child_care</mat-icon> Children</h3>
+              <h3><mat-icon>child_care</mat-icon> {{ 'relationship.children' | translate }}</h3>
               <div class="relationship-list">
                 <mat-chip-listbox>
                   <mat-chip *ngFor="let rel of children">
@@ -188,12 +339,12 @@
                     </span>
                     <span class="dates" *ngIf="rel.individual2.birthDate || rel.individual2.deathDate">
                       ({{ rel.individual2.birthDate ? (rel.individual2.birthDate | date: 'yyyy') : '?' }} -
-                       {{ rel.individual2.deathDate ? (rel.individual2.deathDate | date: 'yyyy') : 'present' }})
+                       {{ rel.individual2.deathDate ? (rel.individual2.deathDate | date: 'yyyy') : ('individual.living' | translate) }})
                     </span>
-                    <button mat-icon-button 
-                            matChipRemove 
+                    <button mat-icon-button
+                            matChipRemove
                             (click)="deleteRelationship(rel.id, 'child')"
-                            matTooltip="Delete relationship">
+                            [matTooltip]="'relationship.deleteRelationship' | translate">
                       <mat-icon>close</mat-icon>
                     </button>
                   </mat-chip>
@@ -202,15 +353,15 @@
             </div>
 
             <!-- Empty State -->
-            <div class="empty-state" *ngIf="parents.length === 0 && spouses.length === 0 && children.length === 0">
+            <div class="empty-state" *ngIf="mothers.length === 0 && fathers.length === 0 && parents.length === 0 && spouses.length === 0 && children.length === 0">
               <mat-icon>link_off</mat-icon>
-              <p>No relationships recorded</p>
+              <p>{{ 'relationship.noRelationships' | translate }}</p>
             </div>
           </div>
         </mat-tab>
 
         <!-- Media Tab -->
-        <mat-tab label="Media">
+        <mat-tab [label]="'media.title' | translate">
           <div class="tab-content">
             <!-- Media Uploader -->
             <app-media-uploader

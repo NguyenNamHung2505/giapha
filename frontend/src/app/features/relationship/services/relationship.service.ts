@@ -5,7 +5,8 @@ import { environment } from '../../../../environments/environment';
 import {
   Relationship,
   CreateRelationshipRequest,
-  UpdateRelationshipRequest
+  UpdateRelationshipRequest,
+  RelationshipPathResponse
 } from '../models/relationship.model';
 
 @Injectable({
@@ -77,5 +78,21 @@ export class RelationshipService {
    */
   deleteRelationship(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/relationships/${id}`);
+  }
+
+  /**
+   * Calculate the relationship between two individuals
+   * Returns detailed relationship information including path and bilingual terms
+   */
+  calculateRelationship(treeId: string, person1Id: string, person2Id: string): Observable<RelationshipPathResponse> {
+    return this.http.get<RelationshipPathResponse>(
+      `${this.apiUrl}/trees/${treeId}/relationship-path`,
+      {
+        params: {
+          person1Id,
+          person2Id
+        }
+      }
+    );
   }
 }

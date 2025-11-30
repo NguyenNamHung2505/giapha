@@ -124,11 +124,42 @@
     align-items: center;
     gap: 12px;
 
-    .person-icon {
-      color: #3f51b5;
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+    .avatar-container {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+
+      &.male {
+        background-color: #e3f2fd;
+        color: #1976d2;
+      }
+
+      &.female {
+        background-color: #fce4ec;
+        color: #c2185b;
+      }
+
+      &:not(.male):not(.female) {
+        background-color: #f5f5f5;
+        color: #757575;
+      }
+
+      .avatar-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .avatar-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
     }
 
     .name-info {
@@ -191,27 +222,38 @@ mat-paginator {
 
 @media (max-width: 768px) {
   .individual-list-container {
-    padding: 16px;
+    padding: 12px;
   }
 
   .header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
+    margin-bottom: 16px;
 
     .title-section {
       h1 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+      }
+
+      .tree-name {
+        font-size: 0.8rem;
       }
     }
 
-    button {
+    .action-buttons {
       width: 100%;
+      flex-direction: column;
+      gap: 8px;
+
+      button {
+        width: 100%;
+      }
     }
   }
 
   .individuals-card {
-    padding: 16px;
+    padding: 12px;
   }
 
   .search-section .search-field {
@@ -222,5 +264,97 @@ mat-paginator {
     .place {
       display: none;
     }
+
+    .name-cell {
+      gap: 8px;
+
+      .avatar-container {
+        width: 32px;
+        height: 32px;
+
+        .avatar-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+
+      .name-info .full-name {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .empty-state {
+    padding: 32px 16px;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+    }
+  }
+
+  mat-paginator {
+    ::ng-deep {
+      .mat-mdc-paginator-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 0;
+      }
+
+      .mat-mdc-paginator-page-size {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .individual-list-container {
+    padding: 8px;
+  }
+
+  .individuals-card {
+    padding: 8px;
+  }
+
+  .header {
+    .title-section h1 {
+      font-size: 1.1rem;
+    }
+  }
+
+  .individuals-table {
+    .name-cell {
+      gap: 6px;
+
+      .avatar-container {
+        width: 28px;
+        height: 28px;
+      }
+
+      .name-info {
+        .full-name {
+          font-size: 0.85rem;
+        }
+
+        .life-dates {
+          font-size: 0.7rem;
+        }
+      }
+    }
+
+    .action-buttons {
+      gap: 0;
+    }
+  }
+
+  .search-section {
+    margin-bottom: 16px;
   }
 }

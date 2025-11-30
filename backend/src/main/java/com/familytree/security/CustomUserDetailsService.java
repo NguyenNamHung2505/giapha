@@ -21,13 +21,15 @@ public class CustomUserDetailsService implements UserDetailsService {
     private UserRepository userRepository;
 
     /**
-     * Load user by email (username)
+     * Load user by username or email
      */
     @Override
     @Transactional
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+    public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
+        // Try to find by username first, then by email
+        User user = userRepository.findByUsername(usernameOrEmail)
+                .orElseGet(() -> userRepository.findByEmail(usernameOrEmail)
+                        .orElseThrow(() -> new UsernameNotFoundException("User not found with username or email: " + usernameOrEmail)));
 
         return UserPrincipal.create(user);
     }

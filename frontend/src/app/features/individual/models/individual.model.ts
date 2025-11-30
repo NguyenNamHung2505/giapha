@@ -10,6 +10,7 @@ export interface Individual {
   treeId: string;
   treeName: string;
   givenName: string;
+  middleName?: string;
   surname: string;
   suffix?: string;
   fullName: string;
@@ -19,7 +20,10 @@ export interface Individual {
   deathDate?: string;
   deathPlace?: string;
   biography?: string;
+  notes?: string;
   profilePictureUrl?: string;
+  facebookLink?: string;
+  phoneNumber?: string;
   mediaCount: number;
   eventCount: number;
   createdAt: string;
@@ -28,6 +32,7 @@ export interface Individual {
 
 export interface CreateIndividualRequest {
   givenName?: string;
+  middleName?: string;
   surname?: string;
   suffix?: string;
   gender?: Gender;
@@ -36,10 +41,14 @@ export interface CreateIndividualRequest {
   deathDate?: string;
   deathPlace?: string;
   biography?: string;
+  notes?: string;
+  facebookLink?: string;
+  phoneNumber?: string;
 }
 
 export interface UpdateIndividualRequest {
   givenName?: string;
+  middleName?: string;
   surname?: string;
   suffix?: string;
   gender?: Gender;
@@ -48,6 +57,9 @@ export interface UpdateIndividualRequest {
   deathDate?: string;
   deathPlace?: string;
   biography?: string;
+  notes?: string;
+  facebookLink?: string;
+  phoneNumber?: string;
 }
 
 export interface IndividualPage {

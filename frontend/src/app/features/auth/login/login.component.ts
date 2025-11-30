@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -22,7 +23,8 @@ import { AuthService } from '../../../core/services/auth.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslateModule
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
@@ -51,13 +53,13 @@ export class LoginComponent implements OnInit {
     }
 
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
 
-  get email() {
-    return this.loginForm.get('email');
+  get username() {
+    return this.loginForm.get('username');
   }
 
   get password() {
@@ -73,7 +75,7 @@ export class LoginComponent implements OnInit {
     this.errorMessage = '';
 
     const loginRequest = {
-      email: this.loginForm.value.email,
+      username: this.loginForm.value.username,
       password: this.loginForm.value.password
     };
 

@@ -34,7 +34,6 @@ import java.util.UUID;
 @RequestMapping("/api/trees/{treeId}/individuals")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
 public class IndividualController {
 
     private final IndividualService individualService;
@@ -207,24 +206,17 @@ public class IndividualController {
     /**
      * Get/stream profile picture/avatar for an individual
      * GET /api/trees/{treeId}/individuals/{id}/avatar
+     * Note: This endpoint is public to allow avatar images to load in HTML img tags
      */
     @GetMapping("/{id}/avatar")
     public ResponseEntity<InputStreamResource> getAvatar(
             @PathVariable UUID treeId,
-            @PathVariable UUID id,
-            Authentication authentication) {
+            @PathVariable UUID id) {
 
         try {
-            log.info("Fetching avatar for individual {} by user: {}", id, authentication.getName());
+            log.info("Fetching avatar for individual {}", id);
 
-            // Get individual to check if avatar exists
-            IndividualResponse individual = individualService.getIndividual(treeId, id, authentication.getName());
-
-            if (individual.getProfilePictureUrl() == null || individual.getProfilePictureUrl().isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-
-            // Find avatar file in MinIO
+            // Find avatar file in MinIO directly (don't need to verify ownership for public view)
             String prefix = "avatars/individuals/" + id + "/";
             List<String> files = minioService.listFiles(prefix);
 

@@ -25,6 +25,7 @@ public class PermissionResponse {
     private PermissionRole role;
     private LocalDateTime grantedAt;
     private boolean isOwner;
+    private boolean isTreeAdmin;
 
     /**
      * Create from entity
@@ -38,6 +39,7 @@ public class PermissionResponse {
                 .role(permission.getRole())
                 .grantedAt(permission.getGrantedAt())
                 .isOwner(false)
+                .isTreeAdmin(false)
                 .build();
     }
 }

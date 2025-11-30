@@ -5,9 +5,19 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatGridListModule } from '@angular/material/grid-list';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { User } from '../../core/models/user.model';
 import { Observable } from 'rxjs';
+
+interface QuickAction {
+  titleKey: string;
+  descriptionKey: string;
+  icon: string;
+  route: string;
+  color: string;
+  adminOnly?: boolean;
+}
 
 @Component({
   selector: 'app-home',
@@ -18,42 +28,32 @@ import { Observable } from 'rxjs';
     MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatGridListModule
+    MatGridListModule,
+    TranslateModule
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit {
   currentUser$: Observable<User | null>;
+  quickActions: QuickAction[] = [];
 
-  quickActions = [
+  private allActions: QuickAction[] = [
     {
-      title: 'Create Family Tree',
-      description: 'Start building your family tree',
-      icon: 'account_tree',
-      route: '/trees/new',
-      color: 'primary'
-    },
-    {
-      title: 'My Trees',
-      description: 'View and manage your family trees',
+      titleKey: 'home.myTrees',
+      descriptionKey: 'home.myTreesDesc',
       icon: 'folder',
       route: '/trees',
-      color: 'accent'
+      color: 'primary',
+      adminOnly: false
     },
     {
-      title: 'Add Individual',
-      description: 'Add a new person to your tree',
-      icon: 'person_add',
-      route: '/individuals/new',
-      color: 'primary'
-    },
-    {
-      title: 'Upload Media',
-      description: 'Add photos and documents',
-      icon: 'photo_library',
-      route: '/media',
-      color: 'accent'
+      titleKey: 'home.userManagement',
+      descriptionKey: 'home.userManagementDesc',
+      icon: 'people',
+      route: '/admin/users',
+      color: 'accent',
+      adminOnly: true
     }
   ];
 
@@ -61,5 +61,17 @@ export class HomeComponent implements OnInit {
     this.currentUser$ = this.authService.currentUser$;
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.updateQuickActions();
+
+    // Update actions when user changes
+    this.currentUser$.subscribe(() => {
+      this.updateQuickActions();
+    });
+  }
+
+  private updateQuickActions(): void {
+    const isAdmin = this.authService.isAdmin();
+    this.quickActions = this.allActions.filter(action => !action.adminOnly || isAdmin);
+  }
 }

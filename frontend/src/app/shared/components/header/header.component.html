@@ -3,9 +3,22 @@
     <mat-icon>menu</mat-icon>
   </button>
 
-  <span class="app-title" routerLink="/">Family Tree Manager</span>
+  <span class="app-title" routerLink="/">{{ 'tree.familyTree' | translate }}</span>
 
   <span class="spacer"></span>
+
+  <!-- Language Switcher -->
+  <button mat-button [matMenuTriggerFor]="langMenu" class="lang-button">
+    <span class="lang-flag">{{ getCurrentLanguage()?.flag }}</span>
+    <span class="lang-code">{{ getCurrentLanguage()?.code | uppercase }}</span>
+  </button>
+  <mat-menu #langMenu="matMenu">
+    <button mat-menu-item *ngFor="let lang of languages" (click)="setLanguage(lang.code)"
+            [class.active]="(currentLang$ | async) === lang.code">
+      <span class="lang-flag">{{ lang.flag }}</span>
+      <span>{{ lang.name }}</span>
+    </button>
+  </mat-menu>
 
   <ng-container *ngIf="currentUser$ | async as user; else loginButton">
     <button mat-button [matMenuTriggerFor]="userMenu">
@@ -15,16 +28,16 @@
     <mat-menu #userMenu="matMenu">
       <button mat-menu-item routerLink="/profile">
         <mat-icon>person</mat-icon>
-        <span>Profile</span>
+        <span>{{ 'auth.name' | translate }}</span>
       </button>
       <button mat-menu-item routerLink="/settings">
-        <mat-icon>settings</mat-icon>
-        <span>Settings</span>
+        <mat-icon>lock</mat-icon>
+        <span>{{ 'settings.changePassword' | translate }}</span>
       </button>
       <mat-divider></mat-divider>
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
-        <span>Logout</span>
+        <span>{{ 'auth.logout' | translate }}</span>
       </button>
     </mat-menu>
   </ng-container>
@@ -32,7 +45,7 @@
   <ng-template #loginButton>
     <button mat-button routerLink="/login">
       <mat-icon>login</mat-icon>
-      <span>Login</span>
+      <span class="login-text">{{ 'auth.login' | translate }}</span>
     </button>
   </ng-template>
 </mat-toolbar>

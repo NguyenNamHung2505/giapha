@@ -1,10 +1,7 @@
 package com.familytree.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -24,13 +21,17 @@ import java.util.UUID;
 @Entity
 @Table(name = "family_trees", indexes = {
     @Index(name = "idx_tree_owner", columnList = "owner_id"),
-    @Index(name = "idx_tree_created", columnList = "created_at")
+    @Index(name = "idx_tree_created", columnList = "created_at"),
+    @Index(name = "idx_tree_source_individual", columnList = "source_individual_id")
 })
 @EntityListeners(AuditingEntityListener.class)
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"owner", "admins", "individuals", "permissions", "relationships"})
+@EqualsAndHashCode(exclude = {"owner", "admins", "individuals", "permissions", "relationships"})
 public class FamilyTree {
 
     @Id
@@ -43,6 +44,24 @@ public class FamilyTree {
     @JoinColumn(name = "owner_id", nullable = false)
     @JsonIgnoreProperties({"ownedTrees", "treePermissions", "passwordHash"})
     private User owner;
+
+    /**
+     * Tree Admins - users with edit permissions on this tree but are not the owner.
+     * When a tree is cloned, the cloner becomes an admin of the new tree.
+     * Admins can edit individuals, relationships, and media but cannot:
+     * - Delete the tree
+     * - Manage collaborators/permissions
+     * - Transfer ownership
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "tree_admins",
+        joinColumns = @JoinColumn(name = "tree_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    @Builder.Default
+    @JsonIgnoreProperties({"ownedTrees", "treePermissions", "passwordHash"})
+    private Set<User> admins = new HashSet<>();
 
     @NotBlank
     @Size(max = 255)
@@ -59,6 +78,21 @@ public class FamilyTree {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Clone tracking fields
+    @Column(name = "source_tree_id")
+    private UUID sourceTreeId;  // Original tree ID if this tree was cloned
+
+    @Column(name = "source_individual_id")
+    private UUID sourceIndividualId;  // Root individual ID from source tree
+
+    @Column(name = "cloned_at")
+    private LocalDateTime clonedAt;  // When this tree was cloned
+
+    // Root individual for this tree (default perspective when viewing)
+    // For cloned trees, this is the cloned root person
+    @Column(name = "root_individual_id")
+    private UUID rootIndividualId;
 
     // Relationships
     @OneToMany(mappedBy = "tree", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -2,7 +2,7 @@
   <mat-card-header>
     <mat-card-title>
       <mat-icon>cloud_upload</mat-icon>
-      Upload Media
+      {{ 'media.upload' | translate }}
     </mat-card-title>
   </mat-card-header>
 
@@ -15,12 +15,12 @@
       (dragleave)="onDragLeave($event)"
       (drop)="onDrop($event)">
       <mat-icon class="upload-icon">cloud_upload</mat-icon>
-      <p class="upload-text">Drag and drop files here</p>
-      <p class="upload-subtext">or</p>
+      <p class="upload-text">{{ 'media.dragDropHint' | translate }}</p>
+      <p class="upload-subtext">{{ 'media.or' | translate }}</p>
       <label for="file-input">
         <button mat-raised-button color="primary" type="button" (click)="fileInput.click()">
           <mat-icon>folder_open</mat-icon>
-          Browse Files
+          {{ 'media.browseFiles' | translate }}
         </button>
       </label>
       <input
@@ -33,22 +33,22 @@
         style="display: none;">
       <p class="upload-info">
         <mat-icon class="info-icon">info</mat-icon>
-        Maximum file size: 5MB. Allowed: Images (JPEG, PNG, GIF, WebP) and Documents (PDF, DOC, TXT)
+        {{ 'media.uploadInfo' | translate }}
       </p>
     </div>
 
     <!-- Upload Queue -->
     <div class="upload-queue" *ngIf="uploadQueue.length > 0">
       <div class="queue-header">
-        <h3>Upload Queue ({{ uploadQueue.length }} file<span *ngIf="uploadQueue.length !== 1">s</span>)</h3>
+        <h3>{{ 'media.uploadQueue' | translate }} ({{ uploadQueue.length }} {{ uploadQueue.length === 1 ? ('media.file' | translate) : ('media.files' | translate) }})</h3>
         <div class="queue-actions">
           <button mat-button color="primary" (click)="uploadAll()" [disabled]="isUploadAllDisabled()">
             <mat-icon>upload</mat-icon>
-            Upload All
+            {{ 'media.uploadAll' | translate }}
           </button>
           <button mat-button (click)="clearCompleted()" [disabled]="!hasCompletedUploads()">
             <mat-icon>clear</mat-icon>
-            Clear Completed
+            {{ 'media.clearCompleted' | translate }}
           </button>
         </div>
       </div>
@@ -65,8 +65,8 @@
 
           <!-- Caption Input -->
           <mat-form-field class="caption-field" *ngIf="!item.media">
-            <mat-label>Caption (optional)</mat-label>
-            <input matInput [(ngModel)]="item.caption" placeholder="Add a caption...">
+            <mat-label>{{ 'media.caption' | translate }}</mat-label>
+            <input matInput [(ngModel)]="item.caption">
           </mat-form-field>
 
           <!-- Caption Display -->
@@ -87,14 +87,14 @@
           <div class="item-status">
             <span *ngIf="item.media" class="status-success">
               <mat-icon>check_circle</mat-icon>
-              Uploaded successfully
+              {{ 'media.uploadedSuccess' | translate }}
             </span>
             <span *ngIf="item.error" class="status-error">
               <mat-icon>error</mat-icon>
               {{ item.error }}
             </span>
             <span *ngIf="item.uploading" class="status-uploading">
-              Uploading... {{ item.progress }}%
+              {{ 'media.uploading' | translate }} {{ item.progress }}%
             </span>
           </div>
         </div>
@@ -105,13 +105,13 @@
                   *ngIf="!item.uploading && !item.media"
                   color="primary"
                   (click)="uploadFile(item)"
-                  matTooltip="Upload file">
+                  [matTooltip]="'media.uploadFile' | translate">
             <mat-icon>upload</mat-icon>
           </button>
 
           <button mat-icon-button
                   (click)="removeFromQueue(item)"
-                  matTooltip="Remove from queue"
+                  [matTooltip]="'media.removeFromQueue' | translate"
                   [disabled]="item.uploading">
             <mat-icon>close</mat-icon>
           </button>
@@ -120,4 +120,3 @@
     </div>
   </mat-card-content>
 </mat-card>
-

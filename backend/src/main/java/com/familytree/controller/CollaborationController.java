@@ -23,7 +23,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/trees/{treeId}/collaboration")
-@CrossOrigin(origins = "http://localhost:4200")
 @Slf4j
 @RequiredArgsConstructor
 public class CollaborationController {

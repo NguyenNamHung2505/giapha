@@ -31,7 +31,7 @@ public class PermissionService {
     private final UserRepository userRepository;
 
     /**
-     * Check if user has view permission (viewer, editor, or owner)
+     * Check if user has view permission (viewer, editor, admin, or owner)
      */
     public boolean hasViewPermission(UUID treeId, String userEmail) {
         FamilyTree tree = treeRepository.findById(treeId).orElse(null);
@@ -44,13 +44,19 @@ public class PermissionService {
             return true;
         }
 
+        // Tree Admins have view permission
+        if (tree.getAdmins() != null && tree.getAdmins().stream()
+                .anyMatch(admin -> admin.getEmail().equals(userEmail))) {
+            return true;
+        }
+
         // Check if user has any permission
         return tree.getPermissions().stream()
                 .anyMatch(p -> p.getUser().getEmail().equals(userEmail));
     }
 
     /**
-     * Check if user has edit permission (editor or owner)
+     * Check if user has edit permission (editor, admin, or owner)
      */
     public boolean hasEditPermission(UUID treeId, String userEmail) {
         FamilyTree tree = treeRepository.findById(treeId).orElse(null);
@@ -60,6 +66,12 @@ public class PermissionService {
 
         // Owner has all permissions
         if (tree.getOwner().getEmail().equals(userEmail)) {
+            return true;
+        }
+
+        // Tree Admins have edit permission
+        if (tree.getAdmins() != null && tree.getAdmins().stream()
+                .anyMatch(admin -> admin.getEmail().equals(userEmail))) {
             return true;
         }
 
@@ -79,6 +91,32 @@ public class PermissionService {
         }
 
         return tree.getOwner().getEmail().equals(userEmail);
+    }
+
+    /**
+     * Check if user is an admin of the tree
+     */
+    public boolean isTreeAdmin(UUID treeId, String userEmail) {
+        FamilyTree tree = treeRepository.findById(treeId).orElse(null);
+        if (tree == null) {
+            return false;
+        }
+
+        return tree.getAdmins() != null && tree.getAdmins().stream()
+                .anyMatch(admin -> admin.getEmail().equals(userEmail));
+    }
+
+    /**
+     * Check if user is an admin of the tree (by user ID)
+     */
+    public boolean isTreeAdmin(UUID treeId, UUID userId) {
+        FamilyTree tree = treeRepository.findById(treeId).orElse(null);
+        if (tree == null) {
+            return false;
+        }
+
+        return tree.getAdmins() != null && tree.getAdmins().stream()
+                .anyMatch(admin -> admin.getId().equals(userId));
     }
 
     /**
@@ -124,6 +162,12 @@ public class PermissionService {
             return true;
         }
 
+        // Tree Admins have view permission
+        if (tree.getAdmins() != null && tree.getAdmins().stream()
+                .anyMatch(admin -> admin.getId().equals(userId))) {
+            return true;
+        }
+
         // Check if user has any permission
         return tree.getPermissions().stream()
                 .anyMatch(p -> p.getUser().getId().equals(userId));
@@ -140,6 +184,12 @@ public class PermissionService {
 
         // Owner has all permissions
         if (tree.getOwner().getId().equals(userId)) {
+            return true;
+        }
+
+        // Tree Admins have edit permission
+        if (tree.getAdmins() != null && tree.getAdmins().stream()
+                .anyMatch(admin -> admin.getId().equals(userId))) {
             return true;
         }
 
@@ -173,8 +223,28 @@ public class PermissionService {
                 .role(PermissionRole.OWNER)
                 .grantedAt(tree.getCreatedAt())
                 .isOwner(true)
+                .isTreeAdmin(false)
                 .build();
         collaborators.add(owner);
+
+        // Add tree admins (different from owner)
+        if (tree.getAdmins() != null) {
+            for (User adminUser : tree.getAdmins()) {
+                if (!adminUser.getId().equals(tree.getOwner().getId())) {
+                    PermissionResponse admin = PermissionResponse.builder()
+                            .id(adminUser.getId().toString())
+                            .userId(adminUser.getId().toString())
+                            .userName(adminUser.getName())
+                            .userEmail(adminUser.getEmail())
+                            .role(PermissionRole.EDITOR) // Admin has editor-like permissions
+                            .grantedAt(tree.getClonedAt() != null ? tree.getClonedAt() : tree.getCreatedAt())
+                            .isOwner(false)
+                            .isTreeAdmin(true)
+                            .build();
+                    collaborators.add(admin);
+                }
+            }
+        }
 
         // Add other collaborators
         List<PermissionResponse> others = tree.getPermissions().stream()

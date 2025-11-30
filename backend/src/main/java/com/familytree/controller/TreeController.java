@@ -1,8 +1,13 @@
 package com.familytree.controller;
 
+import com.familytree.dto.clone.IndividualCloneInfoResponse;
+import com.familytree.dto.clone.TreeCloneInfoResponse;
+import com.familytree.dto.tree.CreateTreeFromIndividualRequest;
+import com.familytree.dto.tree.CreateTreeFromIndividualResponse;
 import com.familytree.dto.tree.CreateTreeRequest;
 import com.familytree.dto.tree.TreeResponse;
 import com.familytree.dto.tree.UpdateTreeRequest;
+import com.familytree.service.TreeCloneService;
 import com.familytree.service.TreeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,10 +30,10 @@ import java.util.UUID;
 @RequestMapping("/api/trees")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
 public class TreeController {
 
     private final TreeService treeService;
+    private final TreeCloneService treeCloneService;
 
     /**
      * Create a new family tree
@@ -99,5 +104,108 @@ public class TreeController {
         log.info("Deleting tree {} for user: {}", id, authentication.getName());
         treeService.deleteTree(id, authentication.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Create a new tree from an individual (clone ancestors and descendants)
+     * POST /api/trees/from-individual
+     */
+    @PostMapping("/from-individual")
+    public ResponseEntity<CreateTreeFromIndividualResponse> createTreeFromIndividual(
+            @Valid @RequestBody CreateTreeFromIndividualRequest request,
+            Authentication authentication) {
+
+        log.info("Creating tree from individual {} in tree {} for user: {}",
+                request.getRootIndividualId(), request.getSourceTreeId(), authentication.getName());
+
+        CreateTreeFromIndividualResponse response = treeCloneService.createTreeFromIndividual(
+                request, authentication.getName());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    /**
+     * Check if an individual has already been exported to a separate tree
+     * GET /api/trees/{treeId}/individuals/{individualId}/is-exported
+     */
+    @GetMapping("/{treeId}/individuals/{individualId}/is-exported")
+    public ResponseEntity<Boolean> checkIndividualExported(
+            @PathVariable UUID treeId,
+            @PathVariable UUID individualId,
+            Authentication authentication) {
+
+        log.info("Checking if individual {} is exported, requested by: {}",
+                individualId, authentication.getName());
+
+        boolean isExported = treeCloneService.isIndividualAlreadyExported(individualId);
+        return ResponseEntity.ok(isExported);
+    }
+
+    /**
+     * Get clone information for an individual
+     * Shows both trees this individual was cloned TO and source info if this is a clone
+     * GET /api/trees/{treeId}/individuals/{individualId}/clone-info
+     */
+    @GetMapping("/{treeId}/individuals/{individualId}/clone-info")
+    public ResponseEntity<IndividualCloneInfoResponse> getIndividualCloneInfo(
+            @PathVariable UUID treeId,
+            @PathVariable UUID individualId,
+            Authentication authentication) {
+
+        log.info("Getting clone info for individual {} in tree {}, requested by: {}",
+                individualId, treeId, authentication.getName());
+
+        IndividualCloneInfoResponse response = treeCloneService.getIndividualCloneInfo(treeId, individualId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Get clone information for a tree
+     * Shows if this tree is a clone or has been cloned, and provides navigation to related trees
+     * GET /api/trees/{treeId}/clone-info
+     */
+    @GetMapping("/{treeId}/clone-info")
+    public ResponseEntity<TreeCloneInfoResponse> getTreeCloneInfo(
+            @PathVariable UUID treeId,
+            Authentication authentication) {
+
+        log.info("Getting clone info for tree {}, requested by: {}",
+                treeId, authentication.getName());
+
+        TreeCloneInfoResponse response = treeCloneService.getTreeCloneInfo(treeId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Add a tree admin
+     * Only the owner can add tree admins
+     * POST /api/trees/{id}/admins/{adminUserId}
+     */
+    @PostMapping("/{id}/admins/{adminUserId}")
+    public ResponseEntity<TreeResponse> addTreeAdmin(
+            @PathVariable UUID id,
+            @PathVariable UUID adminUserId,
+            Authentication authentication) {
+
+        log.info("Adding tree admin for tree {} user {} by user: {}",
+                id, adminUserId, authentication.getName());
+        TreeResponse response = treeService.addTreeAdmin(id, adminUserId, authentication.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Remove a tree admin
+     * Only the owner can remove tree admins
+     * DELETE /api/trees/{id}/admins/{adminUserId}
+     */
+    @DeleteMapping("/{id}/admins/{adminUserId}")
+    public ResponseEntity<TreeResponse> removeTreeAdmin(
+            @PathVariable UUID id,
+            @PathVariable UUID adminUserId,
+            Authentication authentication) {
+
+        log.info("Removing tree admin {} from tree {} by user: {}", adminUserId, id, authentication.getName());
+        TreeResponse response = treeService.removeTreeAdmin(id, adminUserId, authentication.getName());
+        return ResponseEntity.ok(response);
     }
 }

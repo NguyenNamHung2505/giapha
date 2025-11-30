@@ -103,16 +103,12 @@
             <version>${minio.version}</version>
         </dependency>
 
-        <!-- GEDCOM Parsing - Temporarily disabled due to API compatibility issues -->
-        <!-- gedcom4j 4.0.1 has incompatible API compared to newer versions -->
-        <!-- TODO: Research alternative GEDCOM libraries or rewrite for 4.0.1 API -->
-        <!--
+        <!-- GEDCOM Parsing - Re-enabled for import/export functionality -->
         <dependency>
             <groupId>org.gedcom4j</groupId>
             <artifactId>gedcom4j</artifactId>
             <version>${gedcom4j.version}</version>
         </dependency>
-        -->
         <!-- Lombok (Reduce Boilerplate) -->
         <dependency>
             <groupId>org.projectlombok</groupId>

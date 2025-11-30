@@ -24,6 +24,7 @@ public class IndividualResponse {
     private UUID treeId;
     private String treeName;
     private String givenName;
+    private String middleName;
     private String surname;
     private String suffix;
     private String fullName;
@@ -39,7 +40,10 @@ public class IndividualResponse {
 
     private String deathPlace;
     private String biography;
+    private String notes;
     private String profilePictureUrl;
+    private String facebookLink;
+    private String phoneNumber;
     private int mediaCount;
     private int eventCount;
 

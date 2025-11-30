@@ -16,6 +16,65 @@
   margin-left: 8px;
 }
 
+.login-text {
+  margin-left: 8px;
+}
+
 .menu-button {
   margin-right: 16px;
+}
+
+.lang-button {
+  min-width: auto;
+  padding: 0 8px;
+
+  .lang-flag {
+    font-size: 1.2rem;
+    margin-right: 4px;
+  }
+
+  .lang-code {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+}
+
+::ng-deep .mat-menu-item {
+  .lang-flag {
+    font-size: 1.2rem;
+    margin-right: 8px;
+  }
+
+  &.active {
+    background-color: rgba(63, 81, 181, 0.1);
+    font-weight: 500;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .menu-button {
+    margin-right: 8px;
+  }
+
+  .app-title {
+    font-size: 1rem;
+  }
+
+  .user-name,
+  .login-text {
+    display: none;
+  }
+
+  .lang-button {
+    padding: 0 4px;
+
+    .lang-code {
+      display: none;
+    }
+
+    .lang-flag {
+      margin-right: 0;
+    }
+  }
 }

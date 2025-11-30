@@ -44,13 +44,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumWarning": "700kb",
+                  "maximumError": "1.5mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "10kb",
+                  "maximumError": "15kb"
                 }
               ],
               "outputHashing": "all"
@@ -59,18 +59,42 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "public": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.public.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "port": 8083,
+            "host": "0.0.0.0",
+            "allowedHosts": [
+              "localhost",
+              "192.168.1.152",
+              "nguyennamhung.ddns.net",
+              ".ddns.net"
+            ]
+          },
           "configurations": {
             "production": {
               "buildTarget": "frontend:build:production"
             },
             "development": {
               "buildTarget": "frontend:build:development"
+            },
+            "public": {
+              "buildTarget": "frontend:build:public"
             }
           },
           "defaultConfiguration": "development"

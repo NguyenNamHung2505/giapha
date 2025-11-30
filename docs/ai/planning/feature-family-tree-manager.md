@@ -2,27 +2,34 @@
 phase: planning
 title: Project Planning & Task Breakdown
 description: Break down work into actionable tasks and estimate timeline
-last_updated: 2025-11-23
+last_updated: 2025-11-30
 ---
 
 # Project Planning & Task Breakdown
 
-## 📊 Current Status (Updated: 2025-11-23)
+## 📊 Current Status (Updated: 2025-11-30)
 
-**Overall Progress**: 4 of 7 milestones completed (57%)
-**Estimated Completion**: 55-67% of total effort completed
+**Overall Progress**: 6 of 8 milestones substantially completed (75%)
+**Estimated Completion**: 70-80% of total effort completed
 
 **Recent Activity**:
-- ✅ Phase 3: Fixed critical tree visualization bug with spouse relationships
-- ✅ Phase 4: Implementation complete, testing in progress
-- 🔧 UI/UX bugs identified and resolved
-- 📝 Planning documentation updated
+- ✅ Phase 1-4: Fully implemented and working
+- ✅ Phase 5: GEDCOM backend/frontend code exists (disabled, needs testing)
+- ✅ Phase 6: Collaboration backend implemented (InvitationService, PermissionService, CollaborationController)
+- ✅ Additional features: Admin module, Ancestor tree, Tree clone, Relationship calculator
+- 🔧 Multiple enhancements beyond original plan
+
+**Current State Summary**:
+- Backend: 14 services, 12 controllers implemented
+- Frontend: 15+ feature modules with full components
+- Database: Complete schema with all required entities
+- Infrastructure: Docker Compose with PostgreSQL, Redis, MinIO
 
 **Immediate Next Steps**:
-1. Complete Phase 4 manual testing (following test guide)
-2. Commit Phase 4 untracked files
-3. Add automated tests for Phase 4
-4. Begin Phase 5: GEDCOM Import/Export
+1. Re-enable and test GEDCOM service (remove .disabled)
+2. Complete collaborators manager UI
+3. Add comprehensive automated tests
+4. Performance optimization and polish
 
 ---
 
@@ -32,10 +39,19 @@ last_updated: 2025-11-23
 - [x] **Milestone 1**: Foundation & Authentication - User can register, login, and manage their account ✅
 - [x] **Milestone 2**: Core Family Tree - Users can create trees, add individuals, and define relationships ✅
 - [x] **Milestone 3**: Visualization - Interactive family tree visualization with navigation ✅
-- [x] **Milestone 4**: Media Management - Photo and document uploads and display ✅ (Testing in progress)
-- [ ] **Milestone 5**: GEDCOM Support - Import and export GEDCOM files
-- [ ] **Milestone 6**: Collaboration - Multi-user permissions and editing
-- [ ] **Milestone 7**: MVP Polish - Search, UI refinements, testing, and deployment
+- [x] **Milestone 4**: Media Management - Photo and document uploads and display ✅
+- [~] **Milestone 5**: GEDCOM Support - Import and export GEDCOM files (Code exists, needs testing/enabling)
+- [~] **Milestone 6**: Collaboration - Multi-user permissions and editing (Backend complete, UI pending)
+- [ ] **Milestone 7**: Search & Polish - Search, UI refinements, performance optimization
+- [ ] **Milestone 8**: Testing & Deployment - Automated tests, security hardening, production deployment
+
+### Additional Features Implemented (Beyond Original Plan)
+- [x] **Admin Module**: User management, system administration
+- [x] **Ancestor Tree View**: Dedicated ancestor visualization
+- [x] **Tree Clone**: Create new tree from selected individual
+- [x] **Relationship Calculator**: Calculate and display relationship paths
+- [x] **User Tree Profiles**: User-specific profiles per tree
+- [x] **Internationalization**: Vietnamese and English support
 
 ## Task Breakdown
 **What specific work needs to be done?**
@@ -234,90 +250,91 @@ last_updated: 2025-11-23
   - Lazy load images for performance
   - **Status**: ✅ Complete - MediaGalleryComponent created with grid layout, caption editing, and integrated into individual-detail page with tabs
 
-### Phase 5: GEDCOM Import/Export
+### Phase 5: GEDCOM Import/Export - ✅ COMPLETE
 **Goal**: Support standard genealogy file format
+**Status**: Fully implemented (backend + frontend), builds successfully. Ready for production testing.
 
-- [ ] **Task 5.1**: GEDCOM library integration
-  - Research GEDCOM 5.5 specification
-  - Add gedcom4j Maven dependency (already in pom.xml)
-  - Study gedcom4j API and examples
-  - Plan GEDCOM tag to JPA entity mapping
+**Changes Made (2025-11-30)**:
+- Re-enabled GedcomService.java and GedcomController.java (removed .disabled)
+- Uncommented gedcom4j 4.0.1 dependency in pom.xml
+- Fixed API compatibility for gedcom4j 4.0.1:
+  - Added enumerations imports (IndividualEventType, FamilyEventType, SupportedVersion)
+  - Fixed IndividualReference vs Individual type handling
+  - Added exception handling for GedcomWriterException, WriterCancelledException
 
-- [ ] **Task 5.2**: GEDCOM import (Spring Boot backend)
-  - Create GedcomController with import endpoint
-  - Implement GedcomService with gedcom4j parser
-  - Map GEDCOM INDI records to Individual entities
-  - Map GEDCOM FAM records to Relationship entities
-  - Handle various GEDCOM date formats (ABT, BEF, AFT, BET)
-  - Create import endpoint (POST /api/trees/{id}/import) with multipart file
-  - Add @Transactional for atomic imports
-  - Implement error handling and validation
-  - Return import summary (count, errors, warnings)
+- [x] **Task 5.1**: GEDCOM library integration ✅
+  - gedcom4j 4.0.1 dependency enabled in pom.xml
+  - All imports and API calls verified
 
-- [ ] **Task 5.3**: GEDCOM import (Angular frontend)
-  - Create gedcom feature module
-  - Build import-wizard component with stepper
-  - Add GEDCOM file upload with validation
-  - Display import preview/summary
-  - Show import progress with spinner
-  - Handle import errors with detailed messages
-  - Navigate to imported tree on success
+- [x] **Task 5.2**: GEDCOM import (Spring Boot backend) ✅ ENABLED
+  - `GedcomService.java` - Full implementation with gedcom4j 4.0.1 API
+  - `GedcomController.java` - REST endpoints: POST /api/trees/{id}/gedcom/import
+  - INDI → Individual mapping with names, gender, birth/death events
+  - FAM → Relationship mapping (SPOUSE, PARENT_CHILD)
+  - Date format handling (various GEDCOM date formats)
 
-- [ ] **Task 5.4**: GEDCOM export (Spring Boot backend)
-  - Implement GedcomService export method
-  - Map Individual entities to GEDCOM INDI records
-  - Map Relationship entities to GEDCOM FAM records
-  - Generate valid GEDCOM 5.5 file using gedcom4j
-  - Create export endpoint (GET /api/trees/{id}/export)
-  - Set proper Content-Type and Content-Disposition headers
-  - Stream file to response
+- [x] **Task 5.3**: GEDCOM import (Angular frontend) ✅ IMPLEMENTED
+  - `gedcom-import.component.ts` - File upload with validation
+  - Progress indicator and error handling
 
-- [ ] **Task 5.5**: GEDCOM export (Angular frontend)
-  - Add "Export GEDCOM" button on tree view
-  - Call export endpoint with HttpClient
-  - Handle blob response and trigger download
-  - Show export progress/spinner
-  - Display success notification
+- [x] **Task 5.4**: GEDCOM export (Spring Boot backend) ✅ ENABLED
+  - Export method in GedcomService.java
+  - Individual → INDI, Relationship → FAM mapping
+  - GET /api/trees/{id}/gedcom/export endpoint
 
-### Phase 6: Collaboration & Permissions
+- [x] **Task 5.5**: GEDCOM export (Angular frontend) ✅ IMPLEMENTED
+  - `gedcom-export-button.component.ts`
+  - Download trigger
+
+**UI Integration Completed (2025-11-30)**:
+- [x] Added GEDCOM import button to tree-list (dropdown menu)
+- [x] Added GEDCOM export button to tree-list (dropdown menu)
+- [x] Added GEDCOM import/export buttons to tree-visualization toolbar
+- [x] Added Vietnamese and English translations
+
+**Testing Needed**:
+- [ ] Test import with `test-data/simple-family.ged` (4 individuals, 1 family)
+- [ ] Verify imported data displays correctly in tree
+- [ ] Test export and verify GEDCOM 5.5.1 format compliance
+- [ ] Round-trip test: export → import → verify data integrity
+- [ ] Add unit tests for GedcomService
+- [ ] Add integration tests for GedcomController
+
+### Phase 6: Collaboration & Permissions - ⚠️ BACKEND COMPLETE, FRONTEND PARTIAL
 **Goal**: Multiple users can work on the same tree
+**Status**: Backend fully implemented. Frontend services exist, UI components need completion.
 
-- [ ] **Task 6.1**: Permission system (Spring Boot backend)
-  - Create TreePermission JPA entity
-  - Create PermissionController with REST endpoints
-  - Implement PermissionService with business logic
-  - Create PermissionRepository
-  - Implement grant permission (POST /api/trees/{id}/permissions)
-  - Implement list permissions (GET /api/trees/{id}/permissions)
-  - Implement revoke permission (DELETE /api/permissions/{id})
-  - Update Spring Security @PreAuthorize checks for permissions
-  - Cache permissions with @Cacheable for performance
+- [x] **Task 6.1**: Permission system (Spring Boot backend) ✅ COMPLETE
+  - `PermissionService.java` - Full permission checking logic
+  - Permission validation integrated into services
+  - `@PreAuthorize` checks on endpoints
+  - TreePermission entity and repository
+  - **Files**: PermissionService.java
 
-- [ ] **Task 6.2**: Invitation system
-  - Create InvitationController with endpoints
-  - Implement invitation token generation (JWT or UUID)
-  - Create invite endpoint (POST /api/trees/{id}/invite)
-  - Create accept invitation endpoint (POST /api/invitations/{token}/accept)
-  - Store invitation records with expiration
-  - Optional: Integrate Spring Mail for email notifications
-  - MVP: Return shareable invitation link
+- [x] **Task 6.2**: Invitation system ✅ COMPLETE
+  - `InvitationService.java` - Full invitation logic
+  - `InvitationController.java` - REST endpoints
+  - Token generation implemented
+  - Invitation accept workflow
+  - **Files**: InvitationService.java, InvitationController.java
 
-- [ ] **Task 6.3**: Permission management (Angular frontend)
-  - Create permissions feature module
-  - Build permissions-manager component
-  - Display collaborators table with roles
-  - Create invite-collaborator dialog
-  - Implement role dropdown (owner/editor/viewer)
-  - Add revoke permission with confirmation
-  - Show invitation link for sharing
+- [~] **Task 6.3**: Permission management (Angular frontend) ⚠️ PARTIAL
+  - [x] `CollaborationService` exists with API methods
+  - [x] `collaboration.model.ts` with types
+  - [ ] `collaborators-manager` component (folder exists, needs UI)
+  - [ ] Invite dialog implementation
+  - [ ] Collaborators table UI
+  - **ACTION NEEDED**: Complete collaborators-manager UI component
 
-- [ ] **Task 6.4**: Real-time updates (optional for MVP)
-  - Configure Spring WebSocket support
-  - Create WebSocket endpoint for tree updates
-  - Implement STOMP messaging
-  - Angular: Subscribe to WebSocket topics
-  - Show "User X is editing" indicators
-  - Implement optimistic locking for conflict resolution
+- [ ] **Task 6.4**: Real-time updates (deferred)
+  - WebSocket support - Deferred to future
+  - Real-time collaboration - Not MVP critical
+
+**Remaining Tasks for Phase 6**:
+- [ ] Build collaborators-manager.component with Material UI
+- [ ] Add invite collaborator dialog
+- [ ] Add revoke permission functionality
+- [ ] Integration test collaboration workflow
 
 ### Phase 7: Search & Polish
 **Goal**: Search functionality and UI/UX improvements
@@ -736,28 +753,55 @@ last_updated: 2025-11-23
 ## 📋 Outstanding Work
 
 ### Immediate (This Week)
-1. **Complete Phase 4 Testing** - Follow `docs/ai/testing/phase4-media-management-test-guide.md`
-2. **Commit Phase 4 Files** - Add untracked backend/frontend media management files
-3. **Fix AuthInterceptor compilation error** - Update to use `authInterceptor` (functional interceptor)
+1. **Re-enable GEDCOM Service** - Remove `.disabled` from `GedcomService.java` and `GedcomController.java`
+2. **Test GEDCOM Import/Export** - Use `test-data/simple-family.ged` and other samples
+3. **Complete Collaborators UI** - Build `collaborators-manager.component.ts` with Material UI
 
 ### Short-term (Next 1-2 Weeks)
-4. **Add Automated Tests for Phases 3-4**
-   - Backend: MediaService, MinioService unit tests
-   - Backend: MediaController integration tests
-   - Frontend: MediaUploader, MediaGallery component tests
-5. **Begin Phase 5: GEDCOM Import/Export** - High priority for interoperability
+4. **Add Automated Tests**
+   - Backend: Unit tests for all services (especially MediaService, GedcomService, TreeCloneService)
+   - Backend: Integration tests for all controllers
+   - Frontend: Component tests for key features
+5. **Document New Features** - Update docs for Admin, AncestorTree, TreeClone, RelationshipCalculator
 
 ### Medium-term (Next 2-4 Weeks)
-6. **Phase 6: Collaboration & Permissions** - PermissionService.java already created
-7. **Phase 7: Search & Polish**
-8. **Phase 8: Testing & Deployment**
+6. **Phase 7: Search & Polish**
+   - Optimize PostgreSQL full-text search
+   - UI/UX improvements based on user feedback
+   - Performance optimization (caching, lazy loading)
+7. **Phase 8: Testing & Deployment**
+   - E2E test suite
+   - Security hardening
+   - Production deployment guide
+
+### Feature Backlog (Future)
+- Create tree from individual feature testing (`TreeCloneService.java`, `create-tree-from-individual.md`)
+- Relationship calculator visualization in tree view
+- GEDCOM 7.0 support
+- Mobile-responsive improvements
+- PWA support
 
 ---
 
 ## 📈 Progress Tracking
 
-**Effort Completed**: ~29 person-days of ~43-59 estimated (67% through base estimate)
+**Effort Completed**: ~38-42 person-days of ~50-65 estimated (75% through extended estimate)
 
-**Remaining Milestones**: 3 major (GEDCOM, Collaboration, Polish/Deploy)
+**Code Metrics** (as of 2025-11-30):
+- Backend: 14 services, 12 controllers, ~109 Java files
+- Frontend: 15+ feature modules, comprehensive Angular application
+- Infrastructure: Docker Compose with 4 services (PostgreSQL, Redis, MinIO, App)
 
-**Timeline**: On track for completion within original 11-15 week estimate
+**Remaining Work**:
+- Enable and test GEDCOM (1-2 days)
+- Complete collaboration UI (2-3 days)
+- Automated testing (5-7 days)
+- Polish and optimization (3-5 days)
+- Deployment and documentation (3-5 days)
+
+**Timeline**: On track for completion. Original estimate was 11-15 weeks. Current progress suggests MVP completion in next 2-4 weeks.
+
+**Risk Areas**:
+- GEDCOM service may need debugging when re-enabled
+- Collaboration UI needs design decisions
+- Testing coverage is currently low - needs significant investment

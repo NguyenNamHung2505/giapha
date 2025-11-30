@@ -33,6 +33,17 @@ public interface RelationshipRepository extends JpaRepository<Relationship, UUID
     List<Relationship> findByTreeId(UUID treeId);
 
     /**
+     * Find all relationships in a tree with individuals eagerly loaded
+     * @param treeId the tree ID
+     * @return list of relationships with individuals
+     */
+    @Query("SELECT r FROM Relationship r " +
+           "LEFT JOIN FETCH r.individual1 " +
+           "LEFT JOIN FETCH r.individual2 " +
+           "WHERE r.tree.id = :treeId")
+    List<Relationship> findByTreeIdWithIndividuals(@Param("treeId") UUID treeId);
+
+    /**
      * Count relationships in a tree
      * @param treeId the tree ID
      * @return count of relationships
@@ -56,7 +67,7 @@ public interface RelationshipRepository extends JpaRepository<Relationship, UUID
      * @return list of parent relationships
      */
     @Query("SELECT r FROM Relationship r WHERE r.individual2.id = :individualId " +
-           "AND r.type IN ('PARENT_CHILD', 'ADOPTED_PARENT_CHILD', 'STEP_PARENT_CHILD')")
+           "AND r.type IN ('PARENT_CHILD', 'MOTHER_CHILD', 'FATHER_CHILD', 'ADOPTED_PARENT_CHILD', 'STEP_PARENT_CHILD')")
     List<Relationship> findParents(@Param("individualId") UUID individualId);
 
     /**
@@ -65,7 +76,7 @@ public interface RelationshipRepository extends JpaRepository<Relationship, UUID
      * @return list of child relationships
      */
     @Query("SELECT r FROM Relationship r WHERE r.individual1.id = :individualId " +
-           "AND r.type IN ('PARENT_CHILD', 'ADOPTED_PARENT_CHILD', 'STEP_PARENT_CHILD')")
+           "AND r.type IN ('PARENT_CHILD', 'MOTHER_CHILD', 'FATHER_CHILD', 'ADOPTED_PARENT_CHILD', 'STEP_PARENT_CHILD')")
     List<Relationship> findChildren(@Param("individualId") UUID individualId);
 
     /**
@@ -97,4 +108,18 @@ public interface RelationshipRepository extends JpaRepository<Relationship, UUID
      * This will be implemented in the service layer using native query
      */
     // Native query will be added in service layer for better control
+
+    /**
+     * Delete all relationships in a tree
+     * @param treeId the tree ID
+     */
+    void deleteByTreeId(UUID treeId);
+
+    /**
+     * Delete all relationships involving an individual
+     * @param individualId the individual ID
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM Relationship r WHERE r.individual1.id = :individualId OR r.individual2.id = :individualId")
+    void deleteByIndividualId(@Param("individualId") UUID individualId);
 }

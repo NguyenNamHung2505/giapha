@@ -1,51 +1,127 @@
 <div class="tree-visualization-container">
-  <!-- Toolbar -->
+  <!-- Toolbar Row 1 -->
   <mat-toolbar class="tree-toolbar">
-    <button mat-icon-button (click)="back()" matTooltip="Back to list">
+    <button mat-icon-button (click)="back()" [matTooltip]="'tree.backToTrees' | translate">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span class="toolbar-spacer"></span>
-    <span class="toolbar-title">Family Tree Visualization</span>
+
+    <span class="toolbar-title">{{ getTreeTitle() }}</span>
+
     <span class="toolbar-spacer"></span>
 
-    <!-- Controls -->
-    <button mat-icon-button (click)="refresh()" matTooltip="Refresh Tree">
+    <!-- Right side controls -->
+    <button mat-icon-button [routerLink]="['/trees', treeId, 'individuals']" [matTooltip]="'individual.manageIndividuals' | translate">
+      <mat-icon>people</mat-icon>
+    </button>
+    <button mat-icon-button [routerLink]="['/trees', treeId, 'relationship-calculator']" [matTooltip]="'relationship.calculateRelationship' | translate">
+      <mat-icon>calculate</mat-icon>
+    </button>
+    <button mat-icon-button (click)="openGedcomImport()" [matTooltip]="'gedcom.import' | translate">
+      <mat-icon>upload_file</mat-icon>
+    </button>
+    <button mat-icon-button (click)="exportGedcom()" [matTooltip]="'gedcom.export' | translate">
+      <mat-icon>download</mat-icon>
+    </button>
+    <button mat-icon-button (click)="refresh()" [matTooltip]="'common.refresh' | translate">
       <mat-icon>refresh</mat-icon>
     </button>
-    <button mat-icon-button (click)="zoomIn()" matTooltip="Zoom In">
+    <button mat-icon-button (click)="zoomIn()" [matTooltip]="'visualization.zoomIn' | translate">
       <mat-icon>zoom_in</mat-icon>
     </button>
-    <button mat-icon-button (click)="zoomOut()" matTooltip="Zoom Out">
+    <button mat-icon-button (click)="zoomOut()" [matTooltip]="'visualization.zoomOut' | translate">
       <mat-icon>zoom_out</mat-icon>
     </button>
-    <button mat-icon-button (click)="resetZoom()" matTooltip="Reset View">
+    <button mat-icon-button (click)="resetZoom()" [matTooltip]="'visualization.resetView' | translate">
       <mat-icon>center_focus_strong</mat-icon>
     </button>
   </mat-toolbar>
 
+  <!-- Toolbar Row 2 - Selectors -->
+  <div class="selector-toolbar" *ngIf="!loading">
+    <!-- Perspective Selector -->
+    <div class="selector-item" *ngIf="availablePerspectives.length > 0">
+      <span class="selector-label">{{ 'visualization.viewFrom' | translate }}:</span>
+      <button mat-stroked-button [matMenuTriggerFor]="perspectiveMenu" class="selector-button">
+        {{ currentPerspective?.fullName || ('visualization.selectPerson' | translate) }}
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #perspectiveMenu="matMenu">
+        <button mat-menu-item
+                *ngFor="let person of availablePerspectives"
+                (click)="changePerspective(person)"
+                [class.active]="currentPerspective?.id === person.id">
+          <mat-icon *ngIf="currentPerspective?.id === person.id">check</mat-icon>
+          <span>{{ person.fullName }}</span>
+        </button>
+      </mat-menu>
+    </div>
+
+    <!-- View Mode Selector -->
+    <div class="selector-item">
+      <span class="selector-label">{{ 'visualization.displayMode' | translate }}:</span>
+      <button mat-stroked-button [matMenuTriggerFor]="viewModeMenu" class="selector-button">
+        {{ getViewModeLabel() }}
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #viewModeMenu="matMenu">
+        <button mat-menu-item (click)="setViewMode('descendants')" [class.active]="viewMode === 'descendants'">
+          <mat-icon>{{ viewMode === 'descendants' ? 'check' : 'south' }}</mat-icon>
+          <span>{{ 'visualization.descendants' | translate }}</span>
+        </button>
+        <button mat-menu-item (click)="setViewMode('ancestors')" [class.active]="viewMode === 'ancestors'">
+          <mat-icon>{{ viewMode === 'ancestors' ? 'check' : 'north' }}</mat-icon>
+          <span>{{ 'visualization.ancestors' | translate }}</span>
+        </button>
+        <button mat-menu-item (click)="setViewMode('both')" [class.active]="viewMode === 'both'">
+          <mat-icon>{{ viewMode === 'both' ? 'check' : 'swap_vert' }}</mat-icon>
+          <span>{{ 'visualization.both' | translate }}</span>
+        </button>
+      </mat-menu>
+    </div>
+
+    <!-- Previous View Button -->
+    <button mat-stroked-button
+            (click)="returnToPreviousView()"
+            [disabled]="!canReturnToPreviousView()"
+            class="prev-view-button">
+      <mat-icon>undo</mat-icon>
+      {{ 'visualization.returnPrevious' | translate }}
+    </button>
+
+    <!-- View Person in Other Trees (shows when current perspective person is root cloned person) -->
+    <div class="selector-item person-trees" *ngIf="perspectiveHasClones()">
+      <button mat-raised-button color="primary" [matMenuTriggerFor]="personTreesMenu" class="person-trees-button">
+        <mat-icon>person_pin</mat-icon>
+        {{ 'visualization.viewPersonInTrees' | translate }}
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #personTreesMenu="matMenu">
+        <div class="person-trees-header" mat-menu-item disabled>
+          <strong>{{ currentPerspective?.fullName }}</strong>
+        </div>
+        <mat-divider></mat-divider>
+        <button mat-menu-item
+                *ngFor="let location of perspectiveCloneInfo?.allTreeLocations"
+                (click)="navigateToPersonInTree(location)"
+                [class.current-tree]="location.isCurrentTree"
+                [disabled]="location.isCurrentTree">
+          <mat-icon *ngIf="location.isCurrentTree" color="primary">check</mat-icon>
+          <mat-icon *ngIf="!location.isCurrentTree && location.isSourceTree">source</mat-icon>
+          <mat-icon *ngIf="!location.isCurrentTree && !location.isSourceTree">content_copy</mat-icon>
+          <span>{{ location.treeName }}</span>
+          <span class="tree-badge" *ngIf="location.isCurrentTree">({{ 'individual.viewInTree.current' | translate }})</span>
+          <span class="tree-badge source" *ngIf="!location.isCurrentTree && location.isSourceTree">({{ 'individual.viewInTree.source' | translate }})</span>
+        </button>
+      </mat-menu>
+    </div>
+  </div>
+
   <!-- Loading Spinner -->
   <div class="loading-spinner" *ngIf="loading">
     <mat-spinner></mat-spinner>
-    <p>Loading family tree...</p>
+    <p>{{ 'visualization.loadingTree' | translate }}</p>
   </div>
 
   <!-- Tree Container -->
   <div #treeContainer class="tree-container" *ngIf="!loading"></div>
-
-  <!-- Instructions -->
-  <div class="instructions" *ngIf="!loading">
-    <mat-card>
-      <mat-card-content>
-        <p><strong>Navigation:</strong></p>
-        <ul>
-          <li>Click and drag background to pan</li>
-          <li>Drag individual nodes to reposition</li>
-          <li>Scroll to zoom in/out</li>
-          <li>Click on a person to view details</li>
-          <li>Pink dashed lines show spouse/partner relationships</li>
-          <li>Click refresh after adding new relationships</li>
-        </ul>
-      </mat-card-content>
-    </mat-card>
-  </div>
 </div>

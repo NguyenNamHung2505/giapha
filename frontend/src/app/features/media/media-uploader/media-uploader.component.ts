@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MediaService } from '../services/media.service';
 import { Media } from '../models/media.model';
 
@@ -34,7 +35,8 @@ interface UploadItem {
     MatInputModule,
     MatProgressBarModule,
     MatSnackBarModule,
-    MatTooltipModule
+    MatTooltipModule,
+    TranslateModule
   ],
   templateUrl: './media-uploader.component.html',
   styleUrl: './media-uploader.component.scss'
@@ -63,7 +65,8 @@ export class MediaUploaderComponent {
 
   constructor(
     private mediaService: MediaService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private translate: TranslateService
   ) {}
 
   /**
@@ -116,7 +119,9 @@ export class MediaUploaderComponent {
       // Validate file
       const validation = this.validateFile(file);
       if (!validation.valid) {
-        this.snackBar.open(validation.error!, 'Close', { duration: 5000 });
+        this.translate.get('common.close').subscribe(close => {
+          this.snackBar.open(validation.error!, close, { duration: 5000 });
+        });
         continue;
       }
 
@@ -136,16 +141,24 @@ export class MediaUploaderComponent {
    */
   private validateFile(file: File): { valid: boolean; error?: string } {
     if (file.size > this.maxFileSize) {
+      let errorMsg = `File "${file.name}" exceeds maximum size of 5MB`;
+      this.translate.get('media.fileTooLarge').subscribe(msg => {
+        errorMsg = `${file.name}: ${msg}`;
+      });
       return {
         valid: false,
-        error: `File "${file.name}" exceeds maximum size of 5MB`
+        error: errorMsg
       };
     }
 
     if (!this.allowedTypes.includes(file.type)) {
+      let errorMsg = `File "${file.name}" has unsupported type`;
+      this.translate.get('media.unsupportedType').subscribe(msg => {
+        errorMsg = `${file.name}: ${msg}`;
+      });
       return {
         valid: false,
-        error: `File "${file.name}" has unsupported type. Allowed: images and documents (PDF, DOC, TXT)`
+        error: errorMsg
       };
     }
 
@@ -157,7 +170,9 @@ export class MediaUploaderComponent {
    */
   uploadFile(item: UploadItem): void {
     if (!this.individualId) {
-      this.snackBar.open('Individual ID is required', 'Close', { duration: 3000 });
+      this.translate.get(['validation.required', 'common.close']).subscribe(t => {
+        this.snackBar.open(t['validation.required'], t['common.close'], { duration: 3000 });
+      });
       return;
     }
 
@@ -169,14 +184,18 @@ export class MediaUploaderComponent {
         item.progress = result.progress;
         if (result.media) {
           item.media = result.media;
-          this.snackBar.open(`File "${item.file.name}" uploaded successfully!`, 'Close', { duration: 3000 });
+          this.translate.get(['media.uploadSuccess', 'common.close']).subscribe(t => {
+            this.snackBar.open(`${item.file.name}: ${t['media.uploadSuccess']}`, t['common.close'], { duration: 3000 });
+          });
           this.mediaUploaded.emit(result.media);
         }
       },
       error: (error) => {
         item.uploading = false;
         item.error = error.error?.message || 'Upload failed';
-        this.snackBar.open(`Error uploading "${item.file.name}": ${item.error}`, 'Close', { duration: 5000 });
+        this.translate.get(['media.uploadFailed', 'common.close']).subscribe(t => {
+          this.snackBar.open(`${item.file.name}: ${t['media.uploadFailed']}`, t['common.close'], { duration: 5000 });
+        });
       },
       complete: () => {
         item.uploading = false;

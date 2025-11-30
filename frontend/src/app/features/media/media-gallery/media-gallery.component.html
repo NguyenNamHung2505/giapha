@@ -2,11 +2,11 @@
   <mat-card-header>
     <mat-card-title>
       <mat-icon>photo_library</mat-icon>
-      Media Gallery
+      {{ 'media.gallery' | translate }}
       <span class="media-count" *ngIf="mediaList.length > 0">({{ mediaList.length }})</span>
     </mat-card-title>
     <div class="header-actions">
-      <button mat-icon-button (click)="loadMedia()" matTooltip="Refresh">
+      <button mat-icon-button (click)="loadMedia()" [matTooltip]="'common.refresh' | translate">
         <mat-icon>refresh</mat-icon>
       </button>
     </div>
@@ -16,14 +16,14 @@
     <!-- Loading State -->
     <div class="loading-container" *ngIf="loading">
       <mat-spinner diameter="50"></mat-spinner>
-      <p>Loading media...</p>
+      <p>{{ 'common.loading' | translate }}</p>
     </div>
 
     <!-- Empty State -->
     <div class="empty-state" *ngIf="!loading && mediaList.length === 0">
       <mat-icon class="empty-icon">photo_library</mat-icon>
-      <p class="empty-text">No media files yet</p>
-      <p class="empty-subtext">Upload photos and documents to see them here</p>
+      <p class="empty-text">{{ 'media.noMedia' | translate }}</p>
+      <p class="empty-subtext">{{ 'media.noMediaHint' | translate }}</p>
     </div>
 
     <!-- Media Grid -->
@@ -74,11 +74,11 @@
             <!-- Display Mode -->
             <div *ngIf="!editingCaption[media.id]" class="caption-display">
               <p class="caption-text" *ngIf="media.caption">{{ media.caption }}</p>
-              <p class="caption-empty" *ngIf="!media.caption">No caption</p>
+              <p class="caption-empty" *ngIf="!media.caption">{{ 'media.noCaption' | translate }}</p>
               <button mat-icon-button
                       class="caption-edit-btn"
                       (click)="startEditCaption(media)"
-                      matTooltip="Edit caption">
+                      [matTooltip]="'media.editCaption' | translate">
                 <mat-icon>edit</mat-icon>
               </button>
             </div>
@@ -86,18 +86,17 @@
             <!-- Edit Mode -->
             <div *ngIf="editingCaption[media.id]" class="caption-edit">
               <mat-form-field class="caption-field" appearance="outline">
-                <mat-label>Caption</mat-label>
+                <mat-label>{{ 'media.caption' | translate }}</mat-label>
                 <input matInput
                        [(ngModel)]="editedCaptions[media.id]"
-                       placeholder="Add a caption..."
                        (keyup.enter)="saveCaption(media)"
                        (keyup.escape)="cancelEditCaption(media)">
               </mat-form-field>
               <div class="caption-actions">
-                <button mat-icon-button color="primary" (click)="saveCaption(media)" matTooltip="Save">
+                <button mat-icon-button color="primary" (click)="saveCaption(media)" [matTooltip]="'common.save' | translate">
                   <mat-icon>check</mat-icon>
                 </button>
-                <button mat-icon-button (click)="cancelEditCaption(media)" matTooltip="Cancel">
+                <button mat-icon-button (click)="cancelEditCaption(media)" [matTooltip]="'common.cancel' | translate">
                   <mat-icon>close</mat-icon>
                 </button>
               </div>
@@ -108,11 +107,11 @@
           <div class="media-actions">
             <button mat-button color="primary" (click)="downloadMedia(media)">
               <mat-icon>download</mat-icon>
-              Download
+              {{ 'common.download' | translate }}
             </button>
             <button mat-button color="warn" (click)="deleteMedia(media)">
               <mat-icon>delete</mat-icon>
-              Delete
+              {{ 'common.delete' | translate }}
             </button>
           </div>
         </div>
@@ -120,4 +119,3 @@
     </div>
   </mat-card-content>
 </mat-card>
-

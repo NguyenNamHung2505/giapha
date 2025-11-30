@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -22,7 +23,8 @@ import { AuthService } from '../../../core/services/auth.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslateModule
   ],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
@@ -47,8 +49,9 @@ export class RegisterComponent implements OnInit {
     }
 
     this.registerForm = this.formBuilder.group({
+      username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
       name: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
+      email: ['', [Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, {
@@ -66,6 +69,10 @@ export class RegisterComponent implements OnInit {
     }
 
     return password.value === confirmPassword.value ? null : { passwordMismatch: true };
+  }
+
+  get username() {
+    return this.registerForm.get('username');
   }
 
   get name() {
@@ -97,8 +104,9 @@ export class RegisterComponent implements OnInit {
     this.errorMessage = '';
 
     const registerRequest = {
+      username: this.registerForm.value.username,
       name: this.registerForm.value.name,
-      email: this.registerForm.value.email,
+      email: this.registerForm.value.email || undefined,
       password: this.registerForm.value.password
     };
 

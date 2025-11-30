@@ -36,6 +36,9 @@ public class IndividualService {
     private final UserRepository userRepository;
     private final com.familytree.repository.MediaRepository mediaRepository;
     private final com.familytree.repository.EventRepository eventRepository;
+    private final com.familytree.repository.UserTreeProfileRepository userTreeProfileRepository;
+    private final com.familytree.repository.RelationshipRepository relationshipRepository;
+    private final com.familytree.repository.IndividualCloneMappingRepository cloneMappingRepository;
     private final MinioService minioService;
 
     /**
@@ -58,6 +61,7 @@ public class IndividualService {
         Individual individual = Individual.builder()
                 .tree(tree)
                 .givenName(request.getGivenName())
+                .middleName(request.getMiddleName())
                 .surname(request.getSurname())
                 .suffix(request.getSuffix())
                 .gender(request.getGender())
@@ -66,6 +70,9 @@ public class IndividualService {
                 .deathDate(request.getDeathDate())
                 .deathPlace(request.getDeathPlace())
                 .biography(request.getBiography())
+                .notes(request.getNotes())
+                .facebookLink(request.getFacebookLink())
+                .phoneNumber(request.getPhoneNumber())
                 .build();
 
         Individual savedIndividual = individualRepository.save(individual);
@@ -143,12 +150,13 @@ public class IndividualService {
         Individual individual = individualRepository.findById(individualId)
                 .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
 
-        // Check authorization - only owner can update
-        if (!isOwner(individual.getTree(), userEmail)) {
-            throw new UnauthorizedException("Only the tree owner can update individuals");
+        // Check authorization - owner or admin can update
+        if (!canModify(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner or admin can update individuals");
         }
 
         individual.setGivenName(request.getGivenName());
+        individual.setMiddleName(request.getMiddleName());
         individual.setSurname(request.getSurname());
         individual.setSuffix(request.getSuffix());
         individual.setGender(request.getGender());
@@ -157,6 +165,9 @@ public class IndividualService {
         individual.setDeathDate(request.getDeathDate());
         individual.setDeathPlace(request.getDeathPlace());
         individual.setBiography(request.getBiography());
+        individual.setNotes(request.getNotes());
+        individual.setFacebookLink(request.getFacebookLink());
+        individual.setPhoneNumber(request.getPhoneNumber());
 
         Individual updatedIndividual = individualRepository.save(individual);
         log.info("Individual {} updated successfully", individualId);
@@ -173,10 +184,23 @@ public class IndividualService {
         Individual individual = individualRepository.findById(individualId)
                 .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
 
-        // Check authorization - only owner can delete
-        if (!isOwner(individual.getTree(), userEmail)) {
-            throw new UnauthorizedException("Only the tree owner can delete individuals");
+        // Check authorization - owner or admin can delete
+        if (!canModify(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner or admin can delete individuals");
         }
+
+        // Delete all relationships involving this individual
+        relationshipRepository.deleteByIndividualId(individualId);
+        log.info("Deleted relationships for individual {}", individualId);
+
+        // Delete clone mappings for this individual (both as source and cloned)
+        cloneMappingRepository.deleteBySourceIndividualId(individualId);
+        cloneMappingRepository.deleteByClonedIndividualId(individualId);
+        log.info("Deleted clone mappings for individual {}", individualId);
+
+        // Delete user tree profile for this individual
+        userTreeProfileRepository.deleteByIndividualId(individualId);
+        log.info("Deleted user tree profiles for individual {}", individualId);
 
         // Delete avatar from MinIO if exists
         if (individual.getProfilePictureUrl() != null && !individual.getProfilePictureUrl().isEmpty()) {
@@ -204,9 +228,9 @@ public class IndividualService {
         Individual individual = individualRepository.findById(individualId)
                 .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
 
-        // Check authorization - only owner can upload avatar
-        if (!isOwner(individual.getTree(), userEmail)) {
-            throw new UnauthorizedException("Only the tree owner can upload avatars");
+        // Check authorization - owner or admin can upload avatar
+        if (!canModify(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner or admin can upload avatars");
         }
 
         try {
@@ -259,9 +283,9 @@ public class IndividualService {
         Individual individual = individualRepository.findById(individualId)
                 .orElseThrow(() -> new ResourceNotFoundException("Individual not found with ID: " + individualId));
 
-        // Check authorization - only owner can delete avatar
-        if (!isOwner(individual.getTree(), userEmail)) {
-            throw new UnauthorizedException("Only the tree owner can delete avatars");
+        // Check authorization - owner or admin can delete avatar
+        if (!canModify(individual.getTree(), userEmail)) {
+            throw new UnauthorizedException("Only the tree owner or admin can delete avatars");
         }
 
         // Delete avatar from MinIO if exists
@@ -323,14 +347,58 @@ public class IndividualService {
     }
 
     /**
-     * Check if user has access to the tree (owner or has permission)
+     * Check if user has access to the tree (owner, has permission, admin, or linked via UserTreeProfile)
      */
     private boolean hasAccess(FamilyTree tree, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return false;
+        }
+
+        // Admin users have access to all trees
+        if (user.isAdmin()) {
+            return true;
+        }
+
+        // Owner has access
         if (tree.getOwner().getEmail().equals(userEmail)) {
             return true;
         }
-        return tree.getPermissions().stream()
+
+        // User with permission has access
+        boolean hasPermission = tree.getPermissions().stream()
                 .anyMatch(p -> p.getUser().getEmail().equals(userEmail));
+        if (hasPermission) {
+            return true;
+        }
+
+        // User linked via UserTreeProfile has access
+        if (userTreeProfileRepository.existsByUserIdAndTreeId(user.getId(), tree.getId())) {
+            return true;
+        }
+
+        // If this is a cloned tree, check if user has access to the source tree
+        // This allows relatives of the cloned person to view the cloned tree
+        if (tree.getSourceTreeId() != null) {
+            FamilyTree sourceTree = treeRepository.findById(tree.getSourceTreeId()).orElse(null);
+            if (sourceTree != null) {
+                // Check if user has profile in source tree (they are a family member)
+                if (userTreeProfileRepository.existsByUserIdAndTreeId(user.getId(), sourceTree.getId())) {
+                    return true;
+                }
+                // Also check if user is owner or has permission on source tree
+                if (sourceTree.getOwner().getEmail().equals(userEmail)) {
+                    return true;
+                }
+                boolean hasSourcePermission = sourceTree.getPermissions().stream()
+                        .anyMatch(p -> p.getUser().getEmail().equals(userEmail));
+                if (hasSourcePermission) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -338,6 +406,34 @@ public class IndividualService {
      */
     private boolean isOwner(FamilyTree tree, String userEmail) {
         return tree.getOwner().getEmail().equals(userEmail);
+    }
+
+    /**
+     * Check if user can modify tree content (owner, tree admin, or system admin)
+     */
+    private boolean canModify(FamilyTree tree, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElse(null);
+        if (user == null) {
+            return false;
+        }
+
+        // System admin users can modify all trees
+        if (user.isAdmin()) {
+            return true;
+        }
+
+        // Owner can modify
+        if (tree.getOwner().getEmail().equals(userEmail)) {
+            return true;
+        }
+
+        // Tree Admins can modify
+        if (tree.getAdmins() != null && tree.getAdmins().stream()
+                .anyMatch(admin -> admin.getEmail().equals(userEmail))) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -355,6 +451,7 @@ public class IndividualService {
                 .treeId(individual.getTree().getId())
                 .treeName(individual.getTree().getName())
                 .givenName(individual.getGivenName())
+                .middleName(individual.getMiddleName())
                 .surname(individual.getSurname())
                 .suffix(individual.getSuffix())
                 .fullName(fullName)
@@ -364,7 +461,10 @@ public class IndividualService {
                 .deathDate(individual.getDeathDate())
                 .deathPlace(individual.getDeathPlace())
                 .biography(individual.getBiography())
+                .notes(individual.getNotes())
                 .profilePictureUrl(individual.getProfilePictureUrl())
+                .facebookLink(individual.getFacebookLink())
+                .phoneNumber(individual.getPhoneNumber())
                 .mediaCount((int) mediaCount)
                 .eventCount((int) eventCount)
                 .createdAt(individual.getCreatedAt())
@@ -374,26 +474,41 @@ public class IndividualService {
 
     /**
      * Build full name from individual parts
+     * Vietnamese name order: Surname (Họ) + Middle Name (Tên đệm) + Given Name (Tên)
+     * Example: Nguyễn Nam Hưng (Họ: Nguyễn, Tên đệm: Nam, Tên: Hưng)
+     * 
+     * Note: In this system, "suffix" field is used for Vietnamese middle name (tên đệm)
+     * The "middleName" field is also supported for future compatibility
      */
     private String buildFullName(Individual individual) {
         StringBuilder fullName = new StringBuilder();
 
-        if (individual.getGivenName() != null && !individual.getGivenName().isEmpty()) {
-            fullName.append(individual.getGivenName());
-        }
-
+        // 1. Surname (Họ) - comes first in Vietnamese names
         if (individual.getSurname() != null && !individual.getSurname().isEmpty()) {
-            if (fullName.length() > 0) {
-                fullName.append(" ");
-            }
             fullName.append(individual.getSurname());
         }
 
-        if (individual.getSuffix() != null && !individual.getSuffix().isEmpty()) {
+        // 2. Middle Name (Tên đệm) - check middleName first, then suffix
+        String middleName = null;
+        if (individual.getMiddleName() != null && !individual.getMiddleName().isEmpty()) {
+            middleName = individual.getMiddleName();
+        } else if (individual.getSuffix() != null && !individual.getSuffix().isEmpty()) {
+            middleName = individual.getSuffix();
+        }
+        
+        if (middleName != null) {
             if (fullName.length() > 0) {
                 fullName.append(" ");
             }
-            fullName.append(individual.getSuffix());
+            fullName.append(middleName);
+        }
+
+        // 3. Given Name (Tên) - comes last in Vietnamese names
+        if (individual.getGivenName() != null && !individual.getGivenName().isEmpty()) {
+            if (fullName.length() > 0) {
+                fullName.append(" ");
+            }
+            fullName.append(individual.getGivenName());
         }
 
         return fullName.length() > 0 ? fullName.toString() : "Unknown";

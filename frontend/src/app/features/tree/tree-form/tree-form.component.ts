@@ -9,8 +9,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TreeService } from '../services/tree.service';
 import { Tree } from '../models/tree.model';
+import { AdminService, UserWithProfile } from '../../admin/services/admin.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-tree-form',
@@ -25,7 +31,11 @@ import { Tree } from '../models/tree.model';
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatSelectModule,
+    MatDividerModule,
+    MatTooltipModule,
+    TranslateModule
   ],
   templateUrl: './tree-form.component.html',
   styleUrl: './tree-form.component.scss'
@@ -37,12 +47,23 @@ export class TreeFormComponent implements OnInit {
   treeId?: string;
   tree?: Tree;
 
+  // Admin management
+  users: UserWithProfile[] = [];
+  selectedAdminId: string | null = null;
+  isOwner = false;
+  currentUserId?: string;
+  loadingUsers = false;
+  savingAdmin = false;
+
   constructor(
     private formBuilder: FormBuilder,
     private treeService: TreeService,
     private router: Router,
     private route: ActivatedRoute,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private translate: TranslateService,
+    private adminService: AdminService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -50,6 +71,10 @@ export class TreeFormComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(1), Validators.maxLength(255)]],
       description: ['', [Validators.maxLength(5000)]]
     });
+
+    // Get current user ID
+    const currentUser = this.authService.currentUserValue;
+    this.currentUserId = currentUser?.id;
 
     // Check if we're in edit mode
     this.route.paramMap.subscribe(params => {
@@ -70,12 +95,38 @@ export class TreeFormComponent implements OnInit {
           name: tree.name,
           description: tree.description
         });
+
+        // Check if current user is the owner
+        this.isOwner = this.currentUserId === tree.ownerId;
+
+        // Load users for admin selection if owner
+        if (this.isOwner) {
+          this.loadUsers(id);
+        }
+
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading tree:', error);
-        this.snackBar.open('Failed to load tree', 'Close', { duration: 3000 });
+        this.translate.get(['tree.loadFailed', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['tree.loadFailed'], t['common.close'], { duration: 3000 });
+        });
         this.router.navigate(['/trees']);
+      }
+    });
+  }
+
+  loadUsers(treeId: string): void {
+    this.loadingUsers = true;
+    this.adminService.getUsersWithProfiles(treeId).subscribe({
+      next: (users) => {
+        // Filter out the owner from the list (owner cannot be admin)
+        this.users = users.filter(u => u.id !== this.tree?.ownerId);
+        this.loadingUsers = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.loadingUsers = false;
       }
     });
   }
@@ -100,12 +151,16 @@ export class TreeFormComponent implements OnInit {
       // Update existing tree
       this.treeService.updateTree(this.treeId, formValue).subscribe({
         next: () => {
-          this.snackBar.open('Tree updated successfully', 'Close', { duration: 3000 });
+          this.translate.get(['tree.updateSuccess', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['tree.updateSuccess'], t['common.close'], { duration: 3000 });
+          });
           this.router.navigate(['/trees']);
         },
         error: (error) => {
           console.error('Error updating tree:', error);
-          this.snackBar.open('Failed to update tree', 'Close', { duration: 3000 });
+          this.translate.get(['tree.updateFailed', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['tree.updateFailed'], t['common.close'], { duration: 3000 });
+          });
           this.loading = false;
         }
       });
@@ -113,12 +168,16 @@ export class TreeFormComponent implements OnInit {
       // Create new tree
       this.treeService.createTree(formValue).subscribe({
         next: (tree) => {
-          this.snackBar.open('Tree created successfully', 'Close', { duration: 3000 });
+          this.translate.get(['tree.createSuccess', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['tree.createSuccess'], t['common.close'], { duration: 3000 });
+          });
           this.router.navigate(['/trees', tree.id]);
         },
         error: (error) => {
           console.error('Error creating tree:', error);
-          this.snackBar.open('Failed to create tree', 'Close', { duration: 3000 });
+          this.translate.get(['tree.createFailed', 'common.close']).subscribe(t => {
+            this.snackBar.open(t['tree.createFailed'], t['common.close'], { duration: 3000 });
+          });
           this.loading = false;
         }
       });
@@ -127,5 +186,58 @@ export class TreeFormComponent implements OnInit {
 
   cancel(): void {
     this.router.navigate(['/trees']);
+  }
+
+  addAdmin(): void {
+    if (!this.treeId || !this.selectedAdminId) {
+      return;
+    }
+
+    this.savingAdmin = true;
+    this.treeService.addTreeAdmin(this.treeId, this.selectedAdminId).subscribe({
+      next: (tree) => {
+        this.tree = tree;
+        this.selectedAdminId = null; // Reset selection after adding
+        this.translate.get(['tree.setAdminSuccess', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['tree.setAdminSuccess'], t['common.close'], { duration: 3000 });
+        });
+        this.savingAdmin = false;
+      },
+      error: (error) => {
+        console.error('Error adding admin:', error);
+        this.translate.get(['tree.setAdminFailed', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['tree.setAdminFailed'], t['common.close'], { duration: 3000 });
+        });
+        this.savingAdmin = false;
+      }
+    });
+  }
+
+  removeAdmin(adminId: string): void {
+    if (!this.treeId || !adminId) {
+      return;
+    }
+
+    this.savingAdmin = true;
+    this.treeService.removeTreeAdmin(this.treeId, adminId).subscribe({
+      next: (tree) => {
+        this.tree = tree;
+        this.translate.get(['tree.removeAdminSuccess', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['tree.removeAdminSuccess'], t['common.close'], { duration: 3000 });
+        });
+        this.savingAdmin = false;
+      },
+      error: (error) => {
+        console.error('Error removing admin:', error);
+        this.translate.get(['tree.removeAdminFailed', 'common.close']).subscribe(t => {
+          this.snackBar.open(t['tree.removeAdminFailed'], t['common.close'], { duration: 3000 });
+        });
+        this.savingAdmin = false;
+      }
+    });
+  }
+
+  isUserAdmin(userId: string): boolean {
+    return this.tree?.admins?.some(admin => admin.id === userId) || false;
   }
 }

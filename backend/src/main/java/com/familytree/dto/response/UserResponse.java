@@ -18,8 +18,11 @@ import java.util.UUID;
 @Builder
 public class UserResponse {
     private UUID id;
+    private String username;
     private String email;
     private String name;
+    private boolean admin;
+    private boolean enabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -29,8 +32,11 @@ public class UserResponse {
     public static UserResponse fromUser(User user) {
         return UserResponse.builder()
                 .id(user.getId())
+                .username(user.getUsername())
                 .email(user.getEmail())
                 .name(user.getName())
+                .admin(user.isAdmin())
+                .enabled(user.isEnabled())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

@@ -3,43 +3,41 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>{{ isEditMode ? 'edit' : 'add' }}</mat-icon>
-        {{ isEditMode ? 'Edit Family Tree' : 'Create New Family Tree' }}
+        {{ isEditMode ? ('tree.editTree' | translate) : ('tree.createNew' | translate) }}
       </mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
       <form [formGroup]="treeForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Tree Name</mat-label>
+          <mat-label>{{ 'tree.name' | translate }}</mat-label>
           <input
             matInput
             formControlName="name"
-            placeholder="Enter tree name"
             autocomplete="off">
           <mat-icon matPrefix>account_tree</mat-icon>
           <mat-error *ngIf="name?.hasError('required')">
-            Tree name is required
+            {{ 'validation.required' | translate }}
           </mat-error>
           <mat-error *ngIf="name?.hasError('minlength')">
-            Tree name must be at least 1 character
+            {{ 'validation.minLength' | translate: {min: 1} }}
           </mat-error>
           <mat-error *ngIf="name?.hasError('maxlength')">
-            Tree name must not exceed 255 characters
+            {{ 'validation.maxLength' | translate: {max: 255} }}
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Description</mat-label>
+          <mat-label>{{ 'tree.description' | translate }}</mat-label>
           <textarea
             matInput
             formControlName="description"
-            placeholder="Enter a description for your family tree (optional)"
             rows="5"
             autocomplete="off"></textarea>
           <mat-icon matPrefix>description</mat-icon>
-          <mat-hint>{{ description?.value?.length || 0 }} / 5000 characters</mat-hint>
+          <mat-hint>{{ description?.value?.length || 0 }} / 5000</mat-hint>
           <mat-error *ngIf="description?.hasError('maxlength')">
-            Description must not exceed 5000 characters
+            {{ 'validation.maxLength' | translate: {max: 5000} }}
           </mat-error>
         </mat-form-field>
 
@@ -49,7 +47,7 @@
             type="button"
             (click)="cancel()"
             [disabled]="loading">
-            Cancel
+            {{ 'common.cancel' | translate }}
           </button>
           <button
             mat-raised-button
@@ -58,11 +56,65 @@
             [disabled]="loading || treeForm.invalid">
             <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
             <span *ngIf="!loading">
-              {{ isEditMode ? 'Update Tree' : 'Create Tree' }}
+              {{ isEditMode ? ('common.save' | translate) : ('common.add' | translate) }}
             </span>
           </button>
         </div>
       </form>
+
+      <!-- Admin Management Section (only for owners in edit mode) -->
+      <ng-container *ngIf="isEditMode && isOwner">
+        <mat-divider class="admin-divider"></mat-divider>
+
+        <div class="admin-section">
+          <h3>
+            <mat-icon>admin_panel_settings</mat-icon>
+            {{ 'tree.treeAdmin' | translate }}
+          </h3>
+
+          <!-- List of current admins -->
+          <div class="admins-list" *ngIf="tree?.admins?.length">
+            <div class="admin-item" *ngFor="let admin of tree?.admins">
+              <span class="admin-value">{{ admin.name || admin.email }}</span>
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="removeAdmin(admin.id)"
+                [disabled]="savingAdmin"
+                [matTooltip]="'tree.removeAdmin' | translate">
+                <mat-icon>person_remove</mat-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="no-admin" *ngIf="!tree?.admins?.length">
+            <span>{{ 'tree.noAdmin' | translate }}</span>
+          </div>
+
+          <!-- Add new admin -->
+          <div class="admin-selector">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>{{ 'tree.setAdmin' | translate }}</mat-label>
+              <mat-select [(value)]="selectedAdminId" [disabled]="loadingUsers || savingAdmin">
+                <mat-option [value]="null">{{ 'common.select' | translate }}</mat-option>
+                <mat-option *ngFor="let user of users" [value]="user.id" [disabled]="isUserAdmin(user.id)">
+                  {{ user.name || user.username }} ({{ user.email || user.username }})
+                  <span *ngIf="isUserAdmin(user.id)"> - (Admin)</span>
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>person_search</mat-icon>
+            </mat-form-field>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="addAdmin()"
+              [disabled]="!selectedAdminId || savingAdmin || isUserAdmin(selectedAdminId)">
+              <mat-spinner *ngIf="savingAdmin" diameter="20"></mat-spinner>
+              <span *ngIf="!savingAdmin">{{ 'tree.setAdmin' | translate }}</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
     </mat-card-content>
   </mat-card>
 </div>

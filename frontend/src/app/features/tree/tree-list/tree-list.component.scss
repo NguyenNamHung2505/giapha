@@ -10,6 +10,18 @@
   align-items: center;
   margin-bottom: 24px;
 
+  .title-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   h1 {
     font-size: 2rem;
     font-weight: 500;
@@ -122,6 +134,17 @@
     font-size: 0.875rem;
   }
 
+  .admin-name {
+    color: #7b1fa2;
+    font-weight: 500;
+  }
+
+  .no-admin {
+    color: rgba(0, 0, 0, 0.38);
+    font-style: italic;
+    font-size: 0.875rem;
+  }
+
   .action-buttons {
     display: flex;
     gap: 4px;
@@ -152,16 +175,17 @@ mat-paginator {
 
 @media (max-width: 768px) {
   .tree-list-container {
-    padding: 16px;
+    padding: 12px;
   }
 
   .header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
+    margin-bottom: 16px;
 
     h1 {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
     }
 
     button {
@@ -170,12 +194,75 @@ mat-paginator {
   }
 
   .tree-table-card {
-    padding: 16px;
+    padding: 12px;
   }
 
   .tree-table {
     .description {
       display: none;
+    }
+
+    .tree-name {
+      font-size: 0.9rem;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
+
+  .empty-state {
+    padding: 32px 16px;
+
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+
+    h2 {
+      font-size: 1.25rem;
+    }
+  }
+
+  mat-paginator {
+    ::ng-deep {
+      .mat-mdc-paginator-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 8px 0;
+      }
+
+      .mat-mdc-paginator-page-size {
+        margin-right: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .tree-list-container {
+    padding: 8px;
+  }
+
+  .tree-table-card {
+    padding: 8px;
+  }
+
+  .header h1 {
+    font-size: 1.1rem;
+  }
+
+  .tree-table {
+    .tree-name {
+      font-size: 0.85rem;
+      gap: 4px;
+    }
+
+    .action-buttons {
+      gap: 0;
     }
   }
 }

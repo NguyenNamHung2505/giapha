@@ -76,6 +76,13 @@ export class AuthService {
   }
 
   /**
+   * Check if current user is admin
+   */
+  isAdmin(): boolean {
+    return this.currentUserValue?.admin === true;
+  }
+
+  /**
    * Get JWT token from storage
    */
   getToken(): string | null {
@@ -97,5 +104,15 @@ export class AuthService {
   private getStoredUser(): User | null {
     const userJson = localStorage.getItem(this.USER_KEY);
     return userJson ? JSON.parse(userJson) : null;
+  }
+
+  /**
+   * Change password for current user
+   */
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/auth/change-password`, {
+      currentPassword,
+      newPassword
+    });
   }
 }

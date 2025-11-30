@@ -87,4 +87,18 @@ public interface MediaRepository extends JpaRepository<Media, UUID> {
      */
     @Query("SELECT COALESCE(SUM(m.fileSize), 0) FROM Media m WHERE m.individual.tree.id = :treeId")
     Long calculateTreeStorageSize(@Param("treeId") UUID treeId);
+
+    /**
+     * Find all media files in a tree (for deletion)
+     * @param treeId the tree ID
+     * @return list of media
+     */
+    @Query("SELECT m FROM Media m WHERE m.individual.tree.id = :treeId")
+    List<Media> findAllByTreeId(@Param("treeId") UUID treeId);
+
+    /**
+     * Delete all media for a specific individual
+     * @param individualId the individual ID
+     */
+    void deleteByIndividualId(UUID individualId);
 }

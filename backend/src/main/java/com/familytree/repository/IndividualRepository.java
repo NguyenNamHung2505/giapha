@@ -58,14 +58,22 @@ public interface IndividualRepository extends JpaRepository<Individual, UUID> {
 
     /**
      * Search individuals by name within a tree
+     * Searches in givenName, surname, and suffix fields
+     * Uses unaccent to ignore Vietnamese diacritics
      * @param treeId the tree ID
      * @param searchTerm the search term
      * @param pageable pagination information
      * @return page of matching individuals
      */
-    @Query("SELECT i FROM Individual i WHERE i.tree.id = :treeId " +
-           "AND (LOWER(i.givenName) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-           "OR LOWER(i.surname) LIKE LOWER(CONCAT('%', :searchTerm, '%')))")
+    @Query(value = "SELECT * FROM individuals i WHERE i.tree_id = :treeId " +
+           "AND (unaccent(LOWER(i.given_name)) LIKE unaccent(LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "OR unaccent(LOWER(i.surname)) LIKE unaccent(LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "OR unaccent(LOWER(i.suffix)) LIKE unaccent(LOWER(CONCAT('%', :searchTerm, '%'))))",
+           countQuery = "SELECT count(*) FROM individuals i WHERE i.tree_id = :treeId " +
+           "AND (unaccent(LOWER(i.given_name)) LIKE unaccent(LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "OR unaccent(LOWER(i.surname)) LIKE unaccent(LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "OR unaccent(LOWER(i.suffix)) LIKE unaccent(LOWER(CONCAT('%', :searchTerm, '%'))))",
+           nativeQuery = true)
     Page<Individual> searchByName(@Param("treeId") UUID treeId,
                                    @Param("searchTerm") String searchTerm,
                                    Pageable pageable);
@@ -93,4 +101,10 @@ public interface IndividualRepository extends JpaRepository<Individual, UUID> {
      */
     @Query("SELECT i FROM Individual i JOIN FETCH i.tree WHERE i.id = :individualId")
     java.util.Optional<Individual> findByIdWithTree(@Param("individualId") UUID individualId);
+
+    /**
+     * Delete all individuals in a tree
+     * @param treeId the tree ID
+     */
+    void deleteByTreeId(UUID treeId);
 }

@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RelationshipService } from '../services/relationship.service';
 import { IndividualService } from '../../individual/services/individual.service';
 import { Individual } from '../../individual/models/individual.model';
@@ -33,34 +34,37 @@ export interface RelationshipDialogData {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    TranslateModule
   ],
   template: `
-    <h2 mat-dialog-title>Add Relationship for {{ data.individualName }}</h2>
-    
+    <h2 mat-dialog-title>{{ 'relationship.addRelationship' | translate }} - {{ data.individualName }}</h2>
+
     <mat-dialog-content>
       <form [formGroup]="relationshipForm">
         <!-- Relationship Type -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Relationship Type</mat-label>
+          <mat-label>{{ 'relationship.type' | translate }}</mat-label>
           <mat-select formControlName="type" required>
-            <mat-option value="PARENT_CHILD">Parent-Child</mat-option>
-            <mat-option value="SPOUSE">Spouse</mat-option>
-            <mat-option value="PARTNER">Partner</mat-option>
-            <mat-option value="SIBLING">Sibling</mat-option>
-            <mat-option value="ADOPTED_PARENT_CHILD">Adopted Parent-Child</mat-option>
-            <mat-option value="STEP_PARENT_CHILD">Step Parent-Child</mat-option>
-            <mat-option value="HALF_SIBLING">Half Sibling</mat-option>
-            <mat-option value="STEP_SIBLING">Step Sibling</mat-option>
+            <mat-option value="MOTHER_CHILD">{{ 'relationship.motherChild' | translate }}</mat-option>
+            <mat-option value="FATHER_CHILD">{{ 'relationship.fatherChild' | translate }}</mat-option>
+            <mat-option value="PARENT_CHILD">{{ 'relationship.parentChild' | translate }}</mat-option>
+            <mat-option value="SPOUSE">{{ 'relationship.spouse' | translate }}</mat-option>
+            <mat-option value="PARTNER">{{ 'relationship.partner' | translate }}</mat-option>
+            <mat-option value="SIBLING">{{ 'relationship.sibling' | translate }}</mat-option>
+            <mat-option value="ADOPTED_PARENT_CHILD">{{ 'relationship.adoptedParentChild' | translate }}</mat-option>
+            <mat-option value="STEP_PARENT_CHILD">{{ 'relationship.stepParentChild' | translate }}</mat-option>
+            <mat-option value="HALF_SIBLING">{{ 'relationship.halfSibling' | translate }}</mat-option>
+            <mat-option value="STEP_SIBLING">{{ 'relationship.stepSibling' | translate }}</mat-option>
           </mat-select>
           <mat-error *ngIf="relationshipForm.get('type')?.hasError('required')">
-            Relationship type is required
+            {{ 'validation.required' | translate }}
           </mat-error>
         </mat-form-field>
 
         <!-- Individual Selection -->
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Select Individual</mat-label>
+          <mat-label>{{ 'common.select' | translate }}</mat-label>
           <mat-select formControlName="relatedIndividualId" required>
             <mat-option *ngFor="let ind of individuals" [value]="ind.id">
               {{ ind.fullName }}
@@ -70,30 +74,21 @@ export interface RelationshipDialogData {
             </mat-option>
           </mat-select>
           <mat-error *ngIf="relationshipForm.get('relatedIndividualId')?.hasError('required')">
-            Please select an individual
+            {{ 'validation.required' | translate }}
           </mat-error>
         </mat-form-field>
-
-        <div class="help-text">
-          <strong>Note:</strong>
-          <ul>
-            <li><strong>Parent-Child:</strong> {{ data.individualName }} is the <em>parent</em> of the selected person</li>
-            <li><strong>Spouse/Partner:</strong> Equal relationship</li>
-            <li><strong>Sibling:</strong> Equal relationship</li>
-          </ul>
-        </div>
 
         <!-- Optional Dates for Spouse/Partner -->
         <div *ngIf="isSpouseOrPartner()">
           <mat-form-field appearance="outline" class="half-width">
-            <mat-label>Start Date (Optional)</mat-label>
+            <mat-label>{{ 'relationship.startDate' | translate }}</mat-label>
             <input matInput [matDatepicker]="startPicker" formControlName="startDate">
             <mat-datepicker-toggle matSuffix [for]="startPicker"></mat-datepicker-toggle>
             <mat-datepicker #startPicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="half-width">
-            <mat-label>End Date (Optional)</mat-label>
+            <mat-label>{{ 'relationship.endDate' | translate }}</mat-label>
             <input matInput [matDatepicker]="endPicker" formControlName="endDate">
             <mat-datepicker-toggle matSuffix [for]="endPicker"></mat-datepicker-toggle>
             <mat-datepicker #endPicker></mat-datepicker>
@@ -103,16 +98,16 @@ export interface RelationshipDialogData {
 
       <div *ngIf="loading" class="loading">
         <mat-spinner diameter="40"></mat-spinner>
-        <p>Loading individuals...</p>
+        <p>{{ 'common.loading' | translate }}</p>
       </div>
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
-      <button mat-button (click)="onCancel()">Cancel</button>
-      <button mat-raised-button color="primary" 
+      <button mat-button (click)="onCancel()">{{ 'common.cancel' | translate }}</button>
+      <button mat-raised-button color="primary"
               [disabled]="!relationshipForm.valid || saving"
               (click)="onSave()">
-        {{ saving ? 'Saving...' : 'Save' }}
+        {{ saving ? ('common.loading' | translate) : ('common.save' | translate) }}
       </button>
     </mat-dialog-actions>
   `,

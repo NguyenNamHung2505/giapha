@@ -97,6 +97,33 @@
           }
         }
       }
+
+      .view-in-tree-section {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed rgba(0, 0, 0, 0.12);
+
+        .view-tree-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          font-size: 0.85rem;
+          background-color: #ff4081;
+          color: white;
+
+          mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+          }
+
+          &:last-child {
+            margin-left: 0;
+          }
+        }
+      }
     }
 
     .individual-info {
@@ -152,6 +179,117 @@
   }
 }
 
+// Clone Info Card Styles
+.clone-info-card {
+  margin-bottom: 24px;
+  background-color: #f5f5f5;
+  border-left: 4px solid #3f51b5;
+
+  mat-card-header {
+    padding-bottom: 8px;
+
+    mat-icon[mat-card-avatar] {
+      background-color: #3f51b5;
+      color: white;
+      border-radius: 50%;
+      padding: 8px;
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    mat-card-title {
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+
+  mat-card-content {
+    .source-info,
+    .cloned-to-info {
+      margin-bottom: 16px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .info-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: rgba(0, 0, 0, 0.54);
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+          color: #3f51b5;
+        }
+      }
+
+      .tree-link,
+      .tree-links .tree-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        a {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #1976d2;
+          text-decoration: none;
+          font-weight: 500;
+          flex: 1;
+
+          &:hover {
+            text-decoration: underline;
+          }
+
+          mat-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+            color: #4caf50;
+          }
+        }
+
+        .clone-date {
+          font-size: 0.75rem;
+          color: rgba(0, 0, 0, 0.54);
+          white-space: nowrap;
+        }
+
+        .root-chip {
+          font-size: 0.7rem;
+          min-height: 20px;
+          padding: 0 8px;
+          background-color: #e8f5e9;
+          color: #2e7d32;
+        }
+      }
+    }
+  }
+}
+
 .info-card {
   mat-card-title {
     font-size: 1.5rem;
@@ -185,7 +323,75 @@
     }
   }
 
+  .contact-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+    h3 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.54);
+      letter-spacing: 0.5px;
+      margin: 0 0 12px 0;
+    }
+
+    .contact-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        mat-icon {
+          color: #3f51b5;
+          font-size: 20px;
+          width: 20px;
+          height: 20px;
+        }
+
+        a {
+          color: #1976d2;
+          text-decoration: none;
+          font-size: 1rem;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+
   .biography-section {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: rgba(0, 0, 0, 0.54);
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 1rem;
+      color: rgba(0, 0, 0, 0.87);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      margin: 0;
+    }
+  }
+
+  .notes-section {
     margin-top: 16px;
     padding-top: 16px;
     border-top: 1px solid rgba(0, 0, 0, 0.12);
@@ -312,24 +518,210 @@
   }
 }
 
+// Tree menu styles
+::ng-deep .mat-mdc-menu-panel {
+  .current-tree {
+    background-color: rgba(63, 81, 181, 0.1);
+    font-weight: 500;
+  }
+
+  .tree-badge {
+    font-size: 0.75rem;
+    margin-left: 8px;
+    color: rgba(0, 0, 0, 0.54);
+
+    &.source {
+      color: #4caf50;
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .detail-container {
-    padding: 16px;
+    padding: 12px;
   }
 
   .header-card .header-section {
     flex-direction: column;
+    gap: 16px;
+
+    .avatar-section {
+      margin-right: 0;
+      width: 100%;
+
+      .avatar-container {
+        width: 100px;
+        height: 100px;
+      }
+
+      .avatar-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+
+        button {
+          min-width: 100px;
+        }
+      }
+    }
+
+    .individual-info {
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+
+      .name-section {
+        flex-direction: column;
+        align-items: center;
+
+        h1 {
+          font-size: 1.5rem;
+        }
+      }
+    }
 
     .action-buttons {
       width: 100%;
+      justify-content: center;
 
       button {
         flex: 1;
+        min-width: 0;
       }
+    }
+  }
+
+  .info-card {
+    mat-card-title {
+      font-size: 1.25rem;
     }
   }
 
   .info-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .tabs-card {
+    mat-card-title {
+      font-size: 1.25rem;
+    }
+
+    .tab-content {
+      padding: 16px 0;
+    }
+
+    .relationship-header {
+      padding: 12px;
+    }
+
+    .relationship-section {
+      h3 {
+        font-size: 1rem;
+      }
+
+      .relationship-list {
+        mat-chip-listbox {
+          gap: 6px;
+        }
+
+        mat-chip {
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+
+  .clone-info-card {
+    mat-card-content {
+      .tree-link,
+      .cloned-to-info .tree-links .tree-link {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+
+        .clone-date {
+          margin-top: 4px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-container {
+    padding: 8px;
+  }
+
+  .header-card .header-section {
+    .avatar-section {
+      .avatar-container {
+        width: 80px;
+        height: 80px;
+        border-width: 2px;
+
+        .avatar-placeholder mat-icon {
+          font-size: 48px;
+          width: 48px;
+          height: 48px;
+        }
+      }
+
+      .avatar-actions button {
+        font-size: 0.75rem;
+        min-width: 90px;
+        padding: 2px 6px;
+      }
+    }
+
+    .individual-info .name-section h1 {
+      font-size: 1.25rem;
+    }
+
+    .action-buttons {
+      flex-wrap: wrap;
+      gap: 4px;
+
+      button {
+        font-size: 0.8rem;
+
+        mat-icon {
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+  }
+
+  .info-card {
+    mat-card-title {
+      font-size: 1.1rem;
+    }
+
+    .info-grid .info-item {
+      span {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .tabs-card {
+    .relationship-section {
+      .relationship-list mat-chip {
+        font-size: 0.8rem;
+        padding: 4px 8px;
+      }
+    }
+
+    .empty-state {
+      padding: 32px 16px;
+
+      mat-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+      }
+    }
   }
 }

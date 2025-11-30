@@ -1,10 +1,8 @@
 package com.familytree.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import org.hibernate.annotations.GenericGenerator;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -29,10 +27,13 @@ import java.util.UUID;
     @Index(name = "idx_individual_death", columnList = "death_date")
 })
 @EntityListeners(AuditingEntityListener.class)
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"tree", "mediaFiles", "events"})
+@EqualsAndHashCode(exclude = {"tree", "mediaFiles", "events"})
 public class Individual {
 
     @Id
@@ -49,6 +50,10 @@ public class Individual {
     @Size(max = 255)
     @Column(name = "given_name")
     private String givenName;
+
+    @Size(max = 255)
+    @Column(name = "middle_name")
+    private String middleName;
 
     @Size(max = 255)
     @Column(name = "surname")
@@ -79,9 +84,20 @@ public class Individual {
     @Column(columnDefinition = "TEXT")
     private String biography;
 
+    @Column(columnDefinition = "TEXT")
+    private String notes;
+
     @Size(max = 1000)
     @Column(name = "profile_picture_url")
     private String profilePictureUrl;
+
+    @Size(max = 500)
+    @Column(name = "facebook_link")
+    private String facebookLink;
+
+    @Size(max = 20)
+    @Column(name = "phone_number")
+    private String phoneNumber;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -1,33 +1,36 @@
 <div class="tree-list-container">
   <div class="header">
-    <h1>My Family Trees</h1>
-    <button mat-raised-button color="primary" (click)="createTree()">
-      <mat-icon>add</mat-icon>
-      Create New Tree
-    </button>
+    <div class="title-section">
+      <button mat-icon-button routerLink="/" [matTooltip]="'tree.backToHome' | translate">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>{{ 'home.myTrees' | translate }}</h1>
+    </div>
+    <div class="header-actions" *ngIf="isSystemAdmin">
+      <button mat-raised-button color="primary" (click)="createTree()">
+        <mat-icon>add</mat-icon>
+        {{ 'tree.createNew' | translate }}
+      </button>
+    </div>
   </div>
 
   <mat-card class="tree-table-card">
     <div *ngIf="loading" class="loading-spinner">
       <mat-icon>hourglass_empty</mat-icon>
-      <p>Loading trees...</p>
+      <p>{{ 'common.loading' | translate }}</p>
     </div>
 
     <div *ngIf="!loading && trees.length === 0" class="empty-state">
       <mat-icon>account_tree</mat-icon>
-      <h2>No Family Trees Yet</h2>
-      <p>Get started by creating your first family tree</p>
-      <button mat-raised-button color="primary" (click)="createTree()">
-        <mat-icon>add</mat-icon>
-        Create Your First Tree
-      </button>
+      <h2>{{ 'tree.noTrees' | translate }}</h2>
+      <p>{{ 'tree.noTreesDesc' | translate }}</p>
     </div>
 
     <div *ngIf="!loading && trees.length > 0">
       <table mat-table [dataSource]="trees" class="tree-table">
         <!-- Name Column -->
         <ng-container matColumnDef="name">
-          <th mat-header-cell *matHeaderCellDef>Name</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'tree.name' | translate }}</th>
           <td mat-cell *matCellDef="let tree">
             <div class="tree-name">
               <mat-icon>account_tree</mat-icon>
@@ -38,15 +41,36 @@
 
         <!-- Description Column -->
         <ng-container matColumnDef="description">
-          <th mat-header-cell *matHeaderCellDef>Description</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'tree.description' | translate }}</th>
           <td mat-cell *matCellDef="let tree">
-            <span class="description">{{ tree.description || 'No description' }}</span>
+            <span class="description">{{ tree.description || '-' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Owner Column -->
+        <ng-container matColumnDef="owner">
+          <th mat-header-cell *matHeaderCellDef>{{ 'tree.owner' | translate }}</th>
+          <td mat-cell *matCellDef="let tree">
+            <span class="owner-name">{{ tree.ownerName || tree.ownerEmail || '-' }}</span>
+          </td>
+        </ng-container>
+
+        <!-- Admin Column -->
+        <ng-container matColumnDef="admin">
+          <th mat-header-cell *matHeaderCellDef>{{ 'tree.treeAdmin' | translate }}</th>
+          <td mat-cell *matCellDef="let tree">
+            <span class="admin-name" *ngIf="tree.admins && tree.admins.length > 0">
+              <span *ngFor="let admin of tree.admins; let last = last">
+                {{ admin.name || admin.email }}{{ !last ? ', ' : '' }}
+              </span>
+            </span>
+            <span class="no-admin" *ngIf="!tree.admins || tree.admins.length === 0">{{ 'tree.noAdmin' | translate }}</span>
           </td>
         </ng-container>
 
         <!-- Individuals Count Column -->
         <ng-container matColumnDef="individualsCount">
-          <th mat-header-cell *matHeaderCellDef>Individuals</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'individual.individuals' | translate }}</th>
           <td mat-cell *matCellDef="let tree">
             <span class="count-badge">{{ tree.individualsCount }}</span>
           </td>
@@ -54,7 +78,7 @@
 
         <!-- Updated At Column -->
         <ng-container matColumnDef="updatedAt">
-          <th mat-header-cell *matHeaderCellDef>Last Updated</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.lastUpdated' | translate }}</th>
           <td mat-cell *matCellDef="let tree">
             {{ tree.updatedAt | date:'short' }}
           </td>
@@ -62,28 +86,41 @@
 
         <!-- Actions Column -->
         <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Actions</th>
+          <th mat-header-cell *matHeaderCellDef>{{ 'common.actions' | translate }}</th>
           <td mat-cell *matCellDef="let tree">
-            <div class="action-buttons">
-              <button mat-icon-button (click)="viewTree(tree)" matTooltip="View Tree">
-                <mat-icon>visibility</mat-icon>
+            <div class="action-buttons" (click)="$event.stopPropagation()">
+              <button mat-icon-button [matMenuTriggerFor]="actionsMenu" [matTooltip]="'common.moreActions' | translate">
+                <mat-icon>more_vert</mat-icon>
               </button>
-              <button mat-icon-button (click)="editTree(tree)" matTooltip="Edit Tree">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn" (click)="deleteTree(tree)" matTooltip="Delete Tree">
-                <mat-icon>delete</mat-icon>
-              </button>
+              <mat-menu #actionsMenu="matMenu">
+                <button mat-menu-item (click)="editTree(tree)">
+                  <mat-icon>edit</mat-icon>
+                  <span>{{ 'tree.editTree' | translate }}</span>
+                </button>
+                <button mat-menu-item (click)="importGedcom(tree, $event)">
+                  <mat-icon>upload_file</mat-icon>
+                  <span>{{ 'gedcom.import' | translate }}</span>
+                </button>
+                <button mat-menu-item>
+                  <app-gedcom-export-button [treeId]="tree.id" [treeName]="tree.name" color="primary"></app-gedcom-export-button>
+                </button>
+                <mat-divider></mat-divider>
+                <button mat-menu-item color="warn" (click)="deleteTree(tree)">
+                  <mat-icon color="warn">delete</mat-icon>
+                  <span class="warn-text">{{ 'tree.deleteTree' | translate }}</span>
+                </button>
+              </mat-menu>
             </div>
           </td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="tree-row"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="tree-row clickable-row" (click)="viewTree(row)"></tr>
       </table>
 
       <mat-paginator
         [length]="totalElements"
+        [pageIndex]="pageIndex"
         [pageSize]="pageSize"
         [pageSizeOptions]="[5, 10, 20, 50]"
         (page)="onPageChange($event)"

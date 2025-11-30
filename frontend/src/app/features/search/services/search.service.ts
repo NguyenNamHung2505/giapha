@@ -9,7 +9,7 @@ import { environment } from '../../../../environments/environment';
   providedIn: 'root'
 })
 export class SearchService {
-  private apiUrl = `${environment.apiUrl || 'http://localhost:8080/api'}/search`;
+  private apiUrl = `${environment.apiUrl}/search`;
 
   constructor(private http: HttpClient) {}
 

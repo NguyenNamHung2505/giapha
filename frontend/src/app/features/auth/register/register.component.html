@@ -1,30 +1,52 @@
 <div class="register-container">
   <mat-card class="register-card">
     <mat-card-header>
-      <mat-card-title>Create Your Account</mat-card-title>
+      <mat-card-title>{{ 'auth.registerTitle' | translate }}</mat-card-title>
+      <mat-card-subtitle>{{ 'auth.registerSubtitle' | translate }}</mat-card-subtitle>
     </mat-card-header>
 
     <mat-card-content>
       <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Full Name</mat-label>
+          <mat-label>{{ 'auth.username' | translate }}</mat-label>
           <input
             matInput
             type="text"
-            formControlName="name"
-            placeholder="John Doe"
-            autocomplete="name">
-          <mat-icon matPrefix>person</mat-icon>
-          <mat-error *ngIf="name?.hasError('required')">
-            Name is required
+            formControlName="username"
+            autocomplete="username">
+          <mat-icon matPrefix>account_circle</mat-icon>
+          <mat-error *ngIf="username?.hasError('required')">
+            {{ 'validation.required' | translate }}
           </mat-error>
-          <mat-error *ngIf="name?.hasError('minlength')">
-            Name must be at least 2 characters
+          <mat-error *ngIf="username?.hasError('minlength')">
+            {{ 'validation.minLength' | translate: {min: 3} }}
+          </mat-error>
+          <mat-error *ngIf="username?.hasError('maxlength')">
+            {{ 'validation.maxLength' | translate: {max: 50} }}
+          </mat-error>
+          <mat-error *ngIf="username?.hasError('pattern')">
+            {{ 'validation.usernamePattern' | translate }}
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
+          <mat-label>{{ 'auth.name' | translate }}</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="name"
+            autocomplete="name">
+          <mat-icon matPrefix>person</mat-icon>
+          <mat-error *ngIf="name?.hasError('required')">
+            {{ 'validation.required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="name?.hasError('minlength')">
+            {{ 'validation.minLength' | translate: {min: 2} }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'auth.emailOptional' | translate }}</mat-label>
           <input
             matInput
             type="email"
@@ -32,21 +54,17 @@
             placeholder="your@email.com"
             autocomplete="email">
           <mat-icon matPrefix>email</mat-icon>
-          <mat-error *ngIf="email?.hasError('required')">
-            Email is required
-          </mat-error>
           <mat-error *ngIf="email?.hasError('email')">
-            Please enter a valid email
+            {{ 'validation.email' | translate }}
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
+          <mat-label>{{ 'auth.password' | translate }}</mat-label>
           <input
             matInput
             [type]="hidePassword ? 'password' : 'text'"
             formControlName="password"
-            placeholder="Enter your password"
             autocomplete="new-password">
           <mat-icon matPrefix>lock</mat-icon>
           <button
@@ -58,20 +76,19 @@
             <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
           <mat-error *ngIf="password?.hasError('required')">
-            Password is required
+            {{ 'validation.required' | translate }}
           </mat-error>
           <mat-error *ngIf="password?.hasError('minlength')">
-            Password must be at least 6 characters
+            {{ 'validation.minLength' | translate: {min: 6} }}
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Confirm Password</mat-label>
+          <mat-label>{{ 'auth.confirmPassword' | translate }}</mat-label>
           <input
             matInput
             [type]="hideConfirmPassword ? 'password' : 'text'"
             formControlName="confirmPassword"
-            placeholder="Confirm your password"
             autocomplete="new-password">
           <mat-icon matPrefix>lock</mat-icon>
           <button
@@ -83,10 +100,10 @@
             <mat-icon>{{hideConfirmPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
           </button>
           <mat-error *ngIf="confirmPassword?.hasError('required')">
-            Please confirm your password
+            {{ 'validation.required' | translate }}
           </mat-error>
           <mat-error *ngIf="!passwordsMatch && confirmPassword?.touched">
-            Passwords do not match
+            {{ 'validation.passwordMismatch' | translate }}
           </mat-error>
         </mat-form-field>
 
@@ -102,13 +119,13 @@
           class="full-width submit-button"
           [disabled]="loading || registerForm.invalid">
           <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-          <span *ngIf="!loading">Create Account</span>
+          <span *ngIf="!loading">{{ 'auth.createAccount' | translate }}</span>
         </button>
       </form>
 
       <div class="login-link">
-        Already have an account?
-        <a routerLink="/login">Login here</a>
+        {{ 'auth.hasAccount' | translate }}
+        <a routerLink="/login">{{ 'auth.login' | translate }}</a>
       </div>
     </mat-card-content>
   </mat-card>

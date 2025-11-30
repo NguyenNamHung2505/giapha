@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -12,9 +12,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
+import { TranslateModule } from '@ngx-translate/core';
 import { IndividualService } from '../services/individual.service';
 import { Individual } from '../models/individual.model';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { LocaleDatePipe } from '../../../shared/pipes/locale-date.pipe';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-individual-list',
@@ -32,7 +35,9 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
     MatInputModule,
     MatTooltipModule,
     MatSnackBarModule,
-    MatChipsModule
+    MatChipsModule,
+    TranslateModule,
+    LocaleDatePipe
   ],
   templateUrl: './individual-list.component.html',
   styleUrl: './individual-list.component.scss'
@@ -53,7 +58,28 @@ export class IndividualListComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private snackBar: MatSnackBar
-  ) {}
+  ) {
+    this.updateDisplayedColumns();
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize() {
+    this.updateDisplayedColumns();
+  }
+
+  private updateDisplayedColumns(): void {
+    const width = window.innerWidth;
+    if (width < 600) {
+      // Mobile: only name and actions
+      this.displayedColumns = ['fullName', 'actions'];
+    } else if (width < 900) {
+      // Tablet: name, birth date, actions
+      this.displayedColumns = ['fullName', 'birthDate', 'actions'];
+    } else {
+      // Desktop: all columns
+      this.displayedColumns = ['fullName', 'birthDate', 'birthPlace', 'gender', 'actions'];
+    }
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -128,7 +154,7 @@ export class IndividualListComponent implements OnInit {
   }
 
   backToTree(): void {
-    this.router.navigate(['/trees']);
+    this.router.navigate(['/trees', this.treeId, 'visualize']);
   }
 
   clearSearch(): void {
@@ -137,5 +163,21 @@ export class IndividualListComponent implements OnInit {
 
   viewTreeVisualization(): void {
     this.router.navigate(['/trees', this.treeId, 'visualize']);
+  }
+
+  getAvatarUrl(individual: Individual): string {
+    if (!individual.profilePictureUrl) return '';
+    // If it's a relative URL, prepend the API base URL
+    if (individual.profilePictureUrl.startsWith('/api')) {
+      const baseUrl = environment.apiUrl.replace('/api', '');
+      return `${baseUrl}${individual.profilePictureUrl}`;
+    }
+    return individual.profilePictureUrl;
+  }
+
+  onAvatarError(event: Event): void {
+    // Hide the broken image
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
   }
 }

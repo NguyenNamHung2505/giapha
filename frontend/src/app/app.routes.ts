@@ -36,6 +36,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tree-visualization/tree-visualization.component').then(m => m.TreeVisualizationComponent)
   },
   {
+    path: 'trees/:treeId/relationship-calculator',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/relationship/relationship-calculator/relationship-calculator.component').then(m => m.RelationshipCalculatorComponent)
+  },
+  {
+    path: 'trees/:treeId/ancestor-tree',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/ancestor-tree/ancestor-tree.component').then(m => m.AncestorTreeComponent)
+  },
+  {
     path: 'trees/:treeId/individuals',
     canActivate: [authGuard],
     loadComponent: () => import('./features/individual/individual-list/individual-list.component').then(m => m.IndividualListComponent)
@@ -54,6 +64,16 @@ export const routes: Routes = [
     path: 'trees/:treeId/individuals/:id/edit',
     canActivate: [authGuard],
     loadComponent: () => import('./features/individual/individual-form/individual-form.component').then(m => m.IndividualFormComponent)
+  },
+  {
+    path: 'admin/users',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/admin/user-management/user-management.component').then(m => m.UserManagementComponent)
+  },
+  {
+    path: 'settings',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
   },
   {
     path: '**',

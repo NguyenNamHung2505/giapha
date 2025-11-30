@@ -1,8 +1,10 @@
 package com.familytree.controller;
 
 import com.familytree.dto.relationship.CreateRelationshipRequest;
+import com.familytree.dto.relationship.RelationshipPathResponse;
 import com.familytree.dto.relationship.RelationshipResponse;
 import com.familytree.dto.relationship.UpdateRelationshipRequest;
+import com.familytree.service.RelationshipPathService;
 import com.familytree.service.RelationshipService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +23,10 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
 public class RelationshipController {
 
     private final RelationshipService relationshipService;
+    private final RelationshipPathService relationshipPathService;
 
     /**
      * Create a new relationship in a tree
@@ -152,5 +154,30 @@ public class RelationshipController {
         log.info("Deleting relationship {} for user: {}", id, authentication.getName());
         relationshipService.deleteRelationship(id, authentication.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Calculate the relationship between two individuals
+     * GET /api/trees/{treeId}/relationship-path?person1Id={id1}&person2Id={id2}
+     *
+     * This endpoint finds and calculates the familial relationship between two people,
+     * returning both English and Vietnamese relationship terms.
+     *
+     * Example: If A is father of B, and B is father of C:
+     * - Input: person1Id=A, person2Id=C
+     * - Output: A is "grandfather" of C, C is "grandson" of A
+     */
+    @GetMapping("/api/trees/{treeId}/relationship-path")
+    public ResponseEntity<RelationshipPathResponse> calculateRelationship(
+            @PathVariable UUID treeId,
+            @RequestParam UUID person1Id,
+            @RequestParam UUID person2Id,
+            Authentication authentication) {
+
+        log.info("Calculating relationship between {} and {} in tree {} for user: {}",
+                person1Id, person2Id, treeId, authentication.getName());
+        RelationshipPathResponse response = relationshipPathService.findRelationship(
+                treeId, person1Id, person2Id, authentication.getName());
+        return ResponseEntity.ok(response);
     }
 }

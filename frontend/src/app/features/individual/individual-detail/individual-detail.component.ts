@@ -10,6 +10,9 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { IndividualService } from '../services/individual.service';
 import { RelationshipService } from '../../relationship/services/relationship.service';
 import { Individual } from '../models/individual.model';
@@ -18,6 +21,12 @@ import { MediaUploaderComponent } from '../../media/media-uploader/media-uploade
 import { MediaGalleryComponent } from '../../media/media-gallery/media-gallery.component';
 import { Media } from '../../media/models/media.model';
 import { RelationshipFormComponent } from '../../relationship/relationship-form/relationship-form.component';
+import { LocaleDatePipe } from '../../../shared/pipes/locale-date.pipe';
+import { environment } from '../../../../environments/environment';
+import { CreateTreeFromIndividualDialogComponent, CreateTreeFromIndividualDialogData } from '../../tree/create-tree-from-individual-dialog/create-tree-from-individual-dialog.component';
+import { TreeService } from '../../tree/services/tree.service';
+import { Tree, IndividualCloneInfo, TreeLocation } from '../../tree/models/tree.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-individual-detail',
@@ -34,8 +43,12 @@ import { RelationshipFormComponent } from '../../relationship/relationship-form/
     MatSnackBarModule,
     MatDialogModule,
     MatTabsModule,
+    MatTooltipModule,
+    MatMenuModule,
+    TranslateModule,
     MediaUploaderComponent,
-    MediaGalleryComponent
+    MediaGalleryComponent,
+    LocaleDatePipe
   ],
   templateUrl: './individual-detail.component.html',
   styleUrl: './individual-detail.component.scss'
@@ -45,20 +58,54 @@ export class IndividualDetailComponent implements OnInit {
 
   individual?: Individual;
   parents: Relationship[] = [];
+  mothers: Relationship[] = [];
+  fathers: Relationship[] = [];
   children: Relationship[] = [];
   spouses: Relationship[] = [];
   loading = true;
   treeId!: string;
   individualId!: string;
+  currentTree?: Tree;
+  cloneInfo?: IndividualCloneInfo;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private individualService: IndividualService,
     private relationshipService: RelationshipService,
+    private treeService: TreeService,
+    private authService: AuthService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private translate: TranslateService
   ) {}
+
+  /**
+   * Check if current user is system admin
+   */
+  get isSystemAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  /**
+   * Translate relationship type to current language
+   */
+  translateRelationType(type: string): string {
+    const typeMap: { [key: string]: string } = {
+      'SPOUSE': 'relationship.spouse',
+      'PARTNER': 'relationship.partner',
+      'PARENT_CHILD': 'relationship.parentChild',
+      'MOTHER_CHILD': 'relationship.motherChild',
+      'FATHER_CHILD': 'relationship.fatherChild',
+      'ADOPTED_PARENT_CHILD': 'relationship.adoptedParentChild',
+      'STEP_PARENT_CHILD': 'relationship.stepParentChild',
+      'SIBLING': 'relationship.sibling',
+      'HALF_SIBLING': 'relationship.halfSibling',
+      'STEP_SIBLING': 'relationship.stepSibling'
+    };
+    const key = typeMap[type];
+    return key ? this.translate.instant(key) : type;
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -66,8 +113,32 @@ export class IndividualDetailComponent implements OnInit {
       this.individualId = params.get('id') || '';
 
       if (this.treeId && this.individualId) {
+        this.loadTree();
         this.loadIndividual();
         this.loadRelationships();
+        this.loadCloneInfo();
+      }
+    });
+  }
+
+  loadTree(): void {
+    this.treeService.getTree(this.treeId).subscribe({
+      next: (tree) => {
+        this.currentTree = tree;
+      },
+      error: (error) => {
+        console.error('Error loading tree:', error);
+      }
+    });
+  }
+
+  loadCloneInfo(): void {
+    this.treeService.getIndividualCloneInfo(this.treeId, this.individualId).subscribe({
+      next: (info) => {
+        this.cloneInfo = info;
+      },
+      error: (error) => {
+        console.error('Error loading clone info:', error);
       }
     });
   }
@@ -90,7 +161,9 @@ export class IndividualDetailComponent implements OnInit {
   loadRelationships(): void {
     this.relationshipService.getParents(this.individualId).subscribe({
       next: (parents) => {
-        this.parents = parents;
+        this.parents = parents.filter(p => p.type === 'PARENT_CHILD' || p.type === 'ADOPTED_PARENT_CHILD' || p.type === 'STEP_PARENT_CHILD');
+        this.mothers = parents.filter(p => p.type === 'MOTHER_CHILD');
+        this.fathers = parents.filter(p => p.type === 'FATHER_CHILD');
       },
       error: (error) => {
         console.error('Error loading parents:', error);
@@ -184,7 +257,7 @@ export class IndividualDetailComponent implements OnInit {
       return this.individual.profilePictureUrl;
     }
     // Otherwise, prepend API base URL
-    return `http://localhost:8080${this.individual.profilePictureUrl}`;
+    return `${environment.baseUrl}${this.individual.profilePictureUrl}`;
   }
 
   /**
@@ -294,5 +367,50 @@ export class IndividualDetailComponent implements OnInit {
         this.snackBar.open('Failed to delete relationship', 'Close', { duration: 3000 });
       }
     });
+  }
+
+  /**
+   * Open dialog to create a new family tree from this individual
+   */
+  createTreeFromIndividual(): void {
+    const dialogData: CreateTreeFromIndividualDialogData = {
+      treeId: this.treeId,
+      treeName: this.currentTree?.name || '',
+      individualId: this.individualId,
+      individualName: this.individual?.fullName || ''
+    };
+
+    const dialogRef = this.dialog.open(CreateTreeFromIndividualDialogComponent, {
+      width: '550px',
+      disableClose: true,
+      data: dialogData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        if (result.navigateToTree) {
+          // Navigate to the newly created tree visualization
+          this.router.navigate(['/trees', result.newTreeId, 'visualize']);
+        }
+        // Show success message
+        this.snackBar.open(
+          this.translate.instant('tree.createFromIndividual.successMessage'),
+          this.translate.instant('common.close'),
+          { duration: 5000 }
+        );
+      }
+    });
+  }
+
+  /**
+   * Navigate to view this person in a different tree
+   */
+  viewInTree(location: TreeLocation): void {
+    if (location.isCurrentTree) {
+      // Already in this tree, do nothing
+      return;
+    }
+    // Navigate to the individual in the selected tree
+    this.router.navigate(['/trees', location.treeId, 'individuals', location.individualId]);
   }
 }

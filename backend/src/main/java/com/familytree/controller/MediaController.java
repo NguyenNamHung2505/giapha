@@ -26,7 +26,6 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:3000"})
 public class MediaController {
 
     private final MediaService mediaService;

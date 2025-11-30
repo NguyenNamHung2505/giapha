@@ -19,7 +19,6 @@ import java.util.UUID;
  */
 @RestController
 @RequestMapping("/api/search")
-@CrossOrigin(origins = "http://localhost:4200")
 @Slf4j
 @RequiredArgsConstructor
 public class SearchController {

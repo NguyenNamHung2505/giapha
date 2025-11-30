@@ -3,38 +3,39 @@
     <mat-card-header>
       <mat-card-title>
         <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
-        {{ isEditMode ? 'Edit Individual' : 'Add New Individual' }}
+        {{ isEditMode ? ('individual.editIndividual' | translate) : ('individual.addIndividual' | translate) }}
       </mat-card-title>
     </mat-card-header>
 
     <mat-card-content>
       <form [formGroup]="individualForm" (ngSubmit)="onSubmit()">
+        <!-- Vietnamese name order: Họ (Surname) → Tên đệm (Suffix) → Tên (Given Name) -->
         <div class="form-row">
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Given Name</mat-label>
-            <input matInput formControlName="givenName" placeholder="First name">
-            <mat-error *ngIf="givenName?.hasError('maxlength')">Max 255 characters</mat-error>
+            <mat-label>{{ 'individual.surname' | translate }}</mat-label>
+            <input matInput formControlName="surname" placeholder="Nguyễn">
+            <mat-error *ngIf="surname?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 255} }}</mat-error>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Surname</mat-label>
-            <input matInput formControlName="surname" placeholder="Last name">
-            <mat-error *ngIf="surname?.hasError('maxlength')">Max 255 characters</mat-error>
+            <mat-label>{{ 'individual.suffix' | translate }}</mat-label>
+            <input matInput formControlName="suffix" placeholder="Văn">
+            <mat-error *ngIf="suffix?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 50} }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>{{ 'individual.givenName' | translate }}</mat-label>
+            <input matInput formControlName="givenName" placeholder="An">
+            <mat-error *ngIf="givenName?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 255} }}</mat-error>
           </mat-form-field>
         </div>
 
         <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field-small">
-            <mat-label>Suffix</mat-label>
-            <input matInput formControlName="suffix" placeholder="Jr., Sr., III">
-            <mat-error *ngIf="suffix?.hasError('maxlength')">Max 50 characters</mat-error>
-          </mat-form-field>
-
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Gender</mat-label>
+            <mat-label>{{ 'individual.gender' | translate }}</mat-label>
             <mat-select formControlName="gender">
               <mat-option *ngFor="let gender of genders" [value]="gender">
-                {{ gender }}
+                {{ gender === 'MALE' ? ('individual.male' | translate) : (gender === 'FEMALE' ? ('individual.female' | translate) : ('individual.other' | translate)) }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -42,46 +43,70 @@
 
         <div class="form-row">
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Birth Date</mat-label>
+            <mat-label>{{ 'individual.birthDate' | translate }}</mat-label>
             <input matInput [matDatepicker]="birthPicker" formControlName="birthDate">
             <mat-datepicker-toggle matSuffix [for]="birthPicker"></mat-datepicker-toggle>
             <mat-datepicker #birthPicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Birth Place</mat-label>
-            <input matInput formControlName="birthPlace" placeholder="City, State, Country">
-            <mat-error *ngIf="birthPlace?.hasError('maxlength')">Max 500 characters</mat-error>
+            <mat-label>{{ 'individual.birthPlace' | translate }}</mat-label>
+            <input matInput formControlName="birthPlace">
+            <mat-error *ngIf="birthPlace?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 500} }}</mat-error>
           </mat-form-field>
         </div>
 
         <div class="form-row">
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Death Date</mat-label>
+            <mat-label>{{ 'individual.deathDate' | translate }}</mat-label>
             <input matInput [matDatepicker]="deathPicker" formControlName="deathDate">
             <mat-datepicker-toggle matSuffix [for]="deathPicker"></mat-datepicker-toggle>
             <mat-datepicker #deathPicker></mat-datepicker>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="form-field">
-            <mat-label>Death Place</mat-label>
-            <input matInput formControlName="deathPlace" placeholder="City, State, Country">
-            <mat-error *ngIf="deathPlace?.hasError('maxlength')">Max 500 characters</mat-error>
+            <mat-label>{{ 'individual.deathPlace' | translate }}</mat-label>
+            <input matInput formControlName="deathPlace">
+            <mat-error *ngIf="deathPlace?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 500} }}</mat-error>
           </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Biography</mat-label>
-          <textarea matInput formControlName="biography" rows="5" placeholder="Life story and notes"></textarea>
-          <mat-hint>{{ biography?.value?.length || 0 }} / 10000 characters</mat-hint>
-          <mat-error *ngIf="biography?.hasError('maxlength')">Max 10000 characters</mat-error>
+          <mat-label>{{ 'individual.biography' | translate }}</mat-label>
+          <textarea matInput formControlName="biography" rows="5"></textarea>
+          <mat-hint>{{ biography?.value?.length || 0 }} / 10000</mat-hint>
+          <mat-error *ngIf="biography?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 10000} }}</mat-error>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ 'individual.notes' | translate }}</mat-label>
+          <textarea matInput formControlName="notes" rows="5"></textarea>
+          <mat-hint>{{ notes?.value?.length || 0 }} / 10000</mat-hint>
+          <mat-error *ngIf="notes?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 10000} }}</mat-error>
+        </mat-form-field>
+
+        <!-- Contact Information -->
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>{{ 'individual.phoneNumber' | translate }}</mat-label>
+            <mat-icon matPrefix>phone</mat-icon>
+            <input matInput formControlName="phoneNumber" placeholder="0912345678">
+            <mat-error *ngIf="phoneNumber?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 20} }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>{{ 'individual.facebookLink' | translate }}</mat-label>
+            <mat-icon matPrefix>facebook</mat-icon>
+            <input matInput formControlName="facebookLink" placeholder="https://facebook.com/username">
+            <mat-error *ngIf="facebookLink?.hasError('maxlength')">{{ 'validation.maxLength' | translate: {max: 500} }}</mat-error>
+          </mat-form-field>
+        </div>
+
         <div class="form-actions">
-          <button mat-button type="button" (click)="cancel()" [disabled]="loading">Cancel</button>
+          <button mat-button type="button" (click)="cancel()" [disabled]="loading">{{ 'common.cancel' | translate }}</button>
           <button mat-raised-button color="primary" type="submit" [disabled]="loading || individualForm.invalid">
             <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-            <span *ngIf="!loading">{{ isEditMode ? 'Update' : 'Create' }}</span>
+            <span *ngIf="!loading">{{ isEditMode ? ('common.save' | translate) : ('common.add' | translate) }}</span>
           </button>
         </div>
       </form>

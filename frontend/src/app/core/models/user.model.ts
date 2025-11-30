@@ -1,19 +1,22 @@
 export interface User {
   id: string;
-  email: string;
+  username: string;
+  email?: string;
   name: string;
+  admin: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface LoginRequest {
-  email: string;
+  username: string;
   password: string;
 }
 
 export interface RegisterRequest {
+  username: string;
   name: string;
-  email: string;
+  email?: string;
   password: string;
 }
 

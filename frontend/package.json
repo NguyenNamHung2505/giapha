@@ -4,7 +4,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
+    "start:public": "ng serve --configuration public --host 0.0.0.0 --disable-host-check",
     "build": "ng build",
+    "build:public": "ng build --configuration public",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -20,6 +22,8 @@
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
     "@angular/router": "^17.3.0",
+    "@ngx-translate/core": "^17.0.0",
+    "@ngx-translate/http-loader": "^17.0.0",
     "@types/d3": "^7.4.3",
     "d3": "^7.9.0",
     "rxjs": "~7.8.0",
