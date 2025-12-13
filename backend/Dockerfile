@@ -14,6 +14,9 @@ RUN mvn clean package -DskipTests -B
 FROM eclipse-temurin:11-jre-alpine
 WORKDIR /app
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Add non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring
 
