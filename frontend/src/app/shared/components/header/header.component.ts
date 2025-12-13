@@ -11,6 +11,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { LanguageService, Language } from '../../../core/services/language.service';
 import { Observable } from 'rxjs';
 import { User } from '../../../core/models/user.model';
+import { SearchBarComponent } from '../../../features/search/search-bar/search-bar.component';
 
 @Component({
   selector: 'app-header',
@@ -23,7 +24,8 @@ import { User } from '../../../core/models/user.model';
     MatIconModule,
     MatMenuModule,
     MatDividerModule,
-    TranslateModule
+    TranslateModule,
+    SearchBarComponent
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'

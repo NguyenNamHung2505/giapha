@@ -5,7 +5,7 @@
     <input
       type="text"
       class="search-input"
-      placeholder="Search individuals by name or place..."
+      [placeholder]="'search.placeholder' | translate"
       [formControl]="searchControl"
       (focus)="onFocus()"
       (blur)="onBlur()"
@@ -71,7 +71,7 @@
   <div class="search-results" *ngIf="showResults && searchResults.length === 0 && !isLoading && searchControl.value && searchControl.value.length >= 2">
     <div class="no-results">
       <mat-icon>search_off</mat-icon>
-      <p>No results found for "{{ searchControl.value }}"</p>
+      <p>{{ 'search.noResultsFor' | translate: {query: searchControl.value} }}</p>
     </div>
   </div>
 </div>

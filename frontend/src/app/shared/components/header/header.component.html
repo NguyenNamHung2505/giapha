@@ -5,6 +5,11 @@
 
   <span class="app-title" routerLink="/">{{ 'tree.familyTree' | translate }}</span>
 
+  <!-- Global Search Bar (only show when logged in) -->
+  <div class="search-container" *ngIf="currentUser$ | async">
+    <app-search-bar></app-search-bar>
+  </div>
+
   <span class="spacer"></span>
 
   <!-- Language Switcher -->

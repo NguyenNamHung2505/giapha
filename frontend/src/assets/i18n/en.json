@@ -411,6 +411,22 @@
     "fileTooLarge": "File exceeds maximum size of 5MB",
     "unsupportedType": "File has unsupported type"
   },
+  "search": {
+    "placeholder": "Search by name or place...",
+    "resultsCount": "{{count}} result(s) found",
+    "noResults": "No results found",
+    "noResultsFor": "No results found for \"{{query}}\"",
+    "searchInTree": "Search in tree",
+    "globalSearch": "Global search",
+    "filters": "Filters",
+    "gender": "Gender",
+    "birthYear": "Birth year",
+    "deathYear": "Death year",
+    "birthPlace": "Birth place",
+    "deathPlace": "Death place",
+    "clearFilters": "Clear filters",
+    "searching": "Searching..."
+  },
   "gedcom": {
     "title": "GEDCOM",
     "import": "Import GEDCOM",

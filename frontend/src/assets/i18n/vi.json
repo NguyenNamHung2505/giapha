@@ -414,6 +414,22 @@
     "fileTooLarge": "Tệp vượt quá kích thước tối đa 5MB",
     "unsupportedType": "Loại tệp không được hỗ trợ"
   },
+  "search": {
+    "placeholder": "Tìm theo tên hoặc địa điểm...",
+    "resultsCount": "Tìm thấy {{count}} kết quả",
+    "noResults": "Không tìm thấy kết quả",
+    "noResultsFor": "Không tìm thấy kết quả cho \"{{query}}\"",
+    "searchInTree": "Tìm trong gia phả",
+    "globalSearch": "Tìm kiếm toàn bộ",
+    "filters": "Bộ lọc",
+    "gender": "Giới tính",
+    "birthYear": "Năm sinh",
+    "deathYear": "Năm mất",
+    "birthPlace": "Nơi sinh",
+    "deathPlace": "Nơi mất",
+    "clearFilters": "Xóa bộ lọc",
+    "searching": "Đang tìm kiếm..."
+  },
   "gedcom": {
     "title": "GEDCOM",
     "import": "Nhập GEDCOM",

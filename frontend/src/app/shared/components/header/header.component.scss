@@ -12,6 +12,12 @@
   flex: 1 1 auto;
 }
 
+.search-container {
+  flex: 0 1 400px;
+  margin: 0 24px;
+  max-width: 400px;
+}
+
 .user-name {
   margin-left: 8px;
 }
@@ -52,6 +58,13 @@
 }
 
 /* Mobile Responsive */
+@media (max-width: 768px) {
+  .search-container {
+    flex: 0 1 200px;
+    margin: 0 12px;
+  }
+}
+
 @media (max-width: 600px) {
   .menu-button {
     margin-right: 8px;
@@ -59,6 +72,10 @@
 
   .app-title {
     font-size: 1rem;
+  }
+
+  .search-container {
+    display: none;
   }
 
   .user-name,
