@@ -110,11 +110,11 @@ services:
         limits:
           memory: 768M
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      test: [ "CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/api/auth/check | grep -E '200|401|403' || exit 1" ]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 90s
 
   # Angular Frontend + Nginx
   frontend:
