@@ -84,6 +84,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         .permitAll()
                     .antMatchers("/api/auth/**")
                         .permitAll()
+                    // Allow actuator health endpoint for Docker health checks
+                    .antMatchers("/actuator/health", "/actuator/info")
+                        .permitAll()
                     // Allow public access to view avatars (GET only)
                     .antMatchers(HttpMethod.GET, "/api/trees/*/individuals/*/avatar")
                         .permitAll()
