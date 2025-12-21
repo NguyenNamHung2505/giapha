@@ -17,6 +17,7 @@ import { Tree } from '../models/tree.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { GedcomImportComponent, GedcomImportData } from '../../gedcom/gedcom-import/gedcom-import.component';
 import { GedcomExportButtonComponent } from '../../gedcom/gedcom-export/gedcom-export-button.component';
+import { MergeDialogComponent, MergeDialogData } from '../../merge/components/merge-dialog/merge-dialog.component';
 
 @Component({
   selector: 'app-tree-list',
@@ -146,7 +147,7 @@ export class TreeListComponent implements OnInit, OnDestroy {
    */
   importGedcom(tree: Tree, event: Event): void {
     event.stopPropagation();
-    
+
     const dialogRef = this.dialog.open(GedcomImportComponent, {
       width: '600px',
       data: {
@@ -163,6 +164,29 @@ export class TreeListComponent implements OnInit, OnDestroy {
         if (result.treeId) {
           this.router.navigate(['/trees', result.treeId, 'visualize']);
         }
+      }
+    });
+  }
+
+  /**
+   * Open merge dialog for a specific tree
+   */
+  openMergeDialog(tree: Tree, event: Event): void {
+    event.stopPropagation();
+
+    const dialogRef = this.dialog.open(MergeDialogComponent, {
+      width: '700px',
+      maxHeight: '90vh',
+      data: {
+        targetTree: tree,
+        availableTrees: this.trees
+      } as MergeDialogData
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        this.snackBar.open('Gộp cây thành công!', 'Đóng', { duration: 3000 });
+        this.loadTrees(); // Refresh the list
       }
     });
   }

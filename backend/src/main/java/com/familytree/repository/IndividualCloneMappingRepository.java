@@ -102,4 +102,12 @@ public interface IndividualCloneMappingRepository extends JpaRepository<Individu
      * @param clonedIndividualId the cloned individual ID
      */
     void deleteByClonedIndividualId(UUID clonedIndividualId);
+
+    /**
+     * Find all mappings between a source tree and cloned tree
+     */
+    @Query("SELECT m FROM IndividualCloneMapping m WHERE m.sourceTree.id = :sourceTreeId AND m.clonedTree.id = :clonedTreeId")
+    List<IndividualCloneMapping> findBySourceTreeIdAndClonedTreeId(
+            @Param("sourceTreeId") UUID sourceTreeId,
+            @Param("clonedTreeId") UUID clonedTreeId);
 }

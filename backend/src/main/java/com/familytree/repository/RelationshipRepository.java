@@ -122,4 +122,17 @@ public interface RelationshipRepository extends JpaRepository<Relationship, UUID
     @org.springframework.data.jpa.repository.Modifying
     @Query("DELETE FROM Relationship r WHERE r.individual1.id = :individualId OR r.individual2.id = :individualId")
     void deleteByIndividualId(@Param("individualId") UUID individualId);
+
+    /**
+     * Check if a relationship exists between two individuals in a tree
+     */
+    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM Relationship r " +
+           "WHERE r.tree.id = :treeId " +
+           "AND ((r.individual1.id = :ind1Id AND r.individual2.id = :ind2Id) " +
+           "OR (r.individual1.id = :ind2Id AND r.individual2.id = :ind1Id)) " +
+           "AND r.type = :type")
+    boolean existsByTreeIdAndIndividualsAndType(@Param("treeId") UUID treeId,
+                                                  @Param("ind1Id") UUID ind1Id,
+                                                  @Param("ind2Id") UUID ind2Id,
+                                                  @Param("type") RelationshipType type);
 }

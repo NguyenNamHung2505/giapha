@@ -100,7 +100,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private translate: TranslateService,
     private languageService: LanguageService
-  ) {}
+  ) { }
 
   /**
    * Format date based on current language
@@ -189,9 +189,9 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
    */
   perspectiveHasClones(): boolean {
     return this.perspectiveCloneInfo !== null &&
-           this.perspectiveCloneInfo.rootClonedPerson === true &&
-           this.perspectiveCloneInfo.allTreeLocations !== null &&
-           this.perspectiveCloneInfo.allTreeLocations.length > 1;
+      this.perspectiveCloneInfo.rootClonedPerson === true &&
+      this.perspectiveCloneInfo.allTreeLocations !== null &&
+      this.perspectiveCloneInfo.allTreeLocations.length > 1;
   }
 
   /**
@@ -206,6 +206,33 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
     this.router.navigate(['/trees', location.treeId, 'visualize'], {
       queryParams: { perspective: location.individualId }
     });
+  }
+
+  /**
+   * Check if this tree was cloned from another tree
+   */
+  isClonedTree(): boolean {
+    return this.treeCloneInfo?.sourceTreeInfo != null;
+  }
+
+  /**
+   * Open sync dialog for cloned trees
+   * For now, shows info about the source tree and redirects to merge feature
+   */
+  openSyncDialog(): void {
+    const sourceInfo = this.treeCloneInfo?.sourceTreeInfo;
+    if (!sourceInfo) {
+      this.snackBar.open('Không tìm thấy cây nguồn', 'Đóng', { duration: 3000 });
+      return;
+    }
+
+    // Show source tree info and offer to open merge dialog
+    const message = `Cây này được clone từ "${sourceInfo.sourceTreeName}". Tính năng đồng bộ đang được phát triển.`;
+    this.snackBar.open(message, 'Xem cây gốc', { duration: 5000 })
+      .onAction().subscribe(() => {
+        // Navigate to source tree
+        this.router.navigate(['/trees', sourceInfo.sourceTreeId, 'visualize']);
+      });
   }
 
   /**
@@ -536,7 +563,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
       const hasParents = this.relationships.some(rel =>
         rel.individual2.id === individual.id &&
         (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-         rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+          rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
       );
 
       if (!hasParents) {
@@ -596,7 +623,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
       const childRels = this.relationships.filter(rel =>
         rel.individual1.id === ind.id &&
         (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-         rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+          rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
       );
 
       for (const rel of childRels) {
@@ -623,7 +650,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
     const parentRelationships = this.relationships.filter(rel =>
       rel.individual2.id === individual.id &&
       (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-       rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+        rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
     );
 
     // For each parent, find their other children (siblings)
@@ -635,7 +662,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
         rel.individual1.id === parentId &&
         rel.individual2.id !== individual.id && // Exclude the individual themselves
         (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-         rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+          rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
       );
 
       for (const childRel of childRelationships) {
@@ -677,7 +704,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
           const siblingChildRels = this.relationships.filter(rel =>
             rel.individual1.id === sibling.id &&
             (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-             rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+              rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
           );
 
           for (const childRel of siblingChildRels) {
@@ -746,7 +773,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
     const childRelationships = this.relationships.filter(rel =>
       rel.individual1.id === individual.id &&
       (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-       rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+        rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
     );
 
     for (const rel of childRelationships) {
@@ -804,7 +831,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
       const childRelationships = this.relationships.filter(rel =>
         rel.individual1.id === individual.id &&
         (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-         rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+          rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
       );
 
       for (const rel of childRelationships) {
@@ -845,7 +872,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
       const parentRelationships = this.relationships.filter(rel =>
         rel.individual2.id === individual.id &&
         (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-         rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+          rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
       );
 
       for (const rel of parentRelationships) {
@@ -889,7 +916,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
       const parentRelationships = this.relationships.filter(rel =>
         rel.individual2.id === root.id &&
         (rel.type === 'PARENT_CHILD' || rel.type === 'MOTHER_CHILD' || rel.type === 'FATHER_CHILD' ||
-         rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
+          rel.type === 'ADOPTED_PARENT_CHILD' || rel.type === 'STEP_PARENT_CHILD')
       );
 
       tree.ancestors = [];
@@ -944,7 +971,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
     const treeNodes = treeLayout(root);
 
     // Store node positions for dragging
-    const nodePositions = new Map<string, {x: number, y: number}>();
+    const nodePositions = new Map<string, { x: number, y: number }>();
     treeNodes.descendants().forEach((d: any) => {
       nodePositions.set(d.data.individual.id, { x: d.x, y: d.y });
     });
@@ -1027,22 +1054,22 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
 
         // Update spouse links connected to this node
         this.g.selectAll('.spouse-link')
-          .attr('x1', function(this: any) {
+          .attr('x1', function (this: any) {
             const spouse1Id = d3.select(this).attr('data-spouse1');
             const pos = nodePositions.get(spouse1Id);
             return pos ? pos.x + translateX : d3.select(this).attr('x1');
           })
-          .attr('y1', function(this: any) {
+          .attr('y1', function (this: any) {
             const spouse1Id = d3.select(this).attr('data-spouse1');
             const pos = nodePositions.get(spouse1Id);
             return pos ? pos.y + translateY : d3.select(this).attr('y1');
           })
-          .attr('x2', function(this: any) {
+          .attr('x2', function (this: any) {
             const spouse2Id = d3.select(this).attr('data-spouse2');
             const pos = nodePositions.get(spouse2Id);
             return pos ? pos.x + translateX : d3.select(this).attr('x2');
           })
-          .attr('y2', function(this: any) {
+          .attr('y2', function (this: any) {
             const spouse2Id = d3.select(this).attr('data-spouse2');
             const pos = nodePositions.get(spouse2Id);
             return pos ? pos.y + translateY : d3.select(this).attr('y2');
@@ -1219,12 +1246,12 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
             .attr('transform', 'translate(0, -60)')
             .style('cursor', 'pointer')
             .style('pointer-events', 'all')
-            .on('mousedown', function(event: any) {
+            .on('mousedown', function (event: any) {
               event.preventDefault();
               event.stopPropagation();
               event.stopImmediatePropagation();
             })
-            .on('click', function(event: any) {
+            .on('click', function (event: any) {
               event.preventDefault();
               event.stopPropagation();
               event.stopImmediatePropagation();
@@ -1393,12 +1420,12 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
         .attr('transform', 'translate(0, -60)')
         .style('cursor', 'pointer')
         .style('pointer-events', 'all')
-        .on('mousedown', function(event: any) {
+        .on('mousedown', function (event: any) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
         })
-        .on('click', function(event: any) {
+        .on('click', function (event: any) {
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
@@ -1493,7 +1520,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
    * Spouses should be placed immediately to the right of their partner,
    * and all siblings to the right should be shifted accordingly.
    */
-  private adjustPositionsForSpouses(treeNodes: any, nodePositions: Map<string, {x: number, y: number}>, spouseOffset: number): void {
+  private adjustPositionsForSpouses(treeNodes: any, nodePositions: Map<string, { x: number, y: number }>, spouseOffset: number): void {
     // Group nodes by depth (level in the tree)
     const nodesByDepth = new Map<number, any[]>();
     treeNodes.descendants().forEach((node: any) => {
@@ -1545,7 +1572,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
   /**
    * Shift descendant subtrees when their ancestor has spouses
    */
-  private shiftDescendantsForSpouses(treeNodes: any, nodePositions: Map<string, {x: number, y: number}>, spouseOffset: number): void {
+  private shiftDescendantsForSpouses(treeNodes: any, nodePositions: Map<string, { x: number, y: number }>, spouseOffset: number): void {
     const shiftSubtree = (node: any, shift: number) => {
       if (shift === 0) return;
 
@@ -1589,7 +1616,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
   /**
    * Resolve collisions between nodes by adjusting their positions
    */
-  private resolveCollisions(treeNodes: any, nodePositions: Map<string, {x: number, y: number}>): void {
+  private resolveCollisions(treeNodes: any, nodePositions: Map<string, { x: number, y: number }>): void {
     const frameWidth = 160;
     const frameHeight = 120;
     const minDistance = 20; // Minimum space between frames
@@ -1663,7 +1690,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
    * Render both ancestors (above) and descendants (below) with selected person in the middle
    */
   private renderBothView(treeData: any): void {
-    const nodePositions = new Map<string, {x: number, y: number}>();
+    const nodePositions = new Map<string, { x: number, y: number }>();
     const spouseOffset = 180;
     const levelHeight = 150; // Vertical distance between generations
     const nodeWidth = 180; // Width of each node including some padding
@@ -1848,7 +1875,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
   /**
    * Render nodes and links for "both" view
    */
-  private renderBothViewNodes(treeData: any, nodePositions: Map<string, {x: number, y: number}>, spouseOffset: number): void {
+  private renderBothViewNodes(treeData: any, nodePositions: Map<string, { x: number, y: number }>, spouseOffset: number): void {
     const self = this;
 
     // Create drag behavior
@@ -1870,7 +1897,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
         nodePositions.set(individualId, { x: event.x, y: event.y });
 
         // Update links
-        this.g.selectAll('.link').attr('d', function(this: any) {
+        this.g.selectAll('.link').attr('d', function (this: any) {
           const sourceId = d3.select(this).attr('data-source');
           const targetId = d3.select(this).attr('data-target');
           const sourcePos = nodePositions.get(sourceId);
@@ -1883,22 +1910,22 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
 
         // Update spouse links
         this.g.selectAll('.spouse-link')
-          .attr('x1', function(this: any) {
+          .attr('x1', function (this: any) {
             const spouse1Id = d3.select(this).attr('data-spouse1');
             const pos = nodePositions.get(spouse1Id);
             return pos ? pos.x : 0;
           })
-          .attr('y1', function(this: any) {
+          .attr('y1', function (this: any) {
             const spouse1Id = d3.select(this).attr('data-spouse1');
             const pos = nodePositions.get(spouse1Id);
             return pos ? pos.y : 0;
           })
-          .attr('x2', function(this: any) {
+          .attr('x2', function (this: any) {
             const spouse2Id = d3.select(this).attr('data-spouse2');
             const pos = nodePositions.get(spouse2Id);
             return pos ? pos.x : 0;
           })
-          .attr('y2', function(this: any) {
+          .attr('y2', function (this: any) {
             const spouse2Id = d3.select(this).attr('data-spouse2');
             const pos = nodePositions.get(spouse2Id);
             return pos ? pos.y : 0;
@@ -2176,7 +2203,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
    * Render ancestors view with selected person at bottom center and ancestors above
    */
   private renderAncestorsView(treeData: any): void {
-    const nodePositions = new Map<string, {x: number, y: number}>();
+    const nodePositions = new Map<string, { x: number, y: number }>();
     const spouseOffset = 180;
     const levelHeight = 150; // Vertical distance between generations
     const nodeWidth = 180;
@@ -2261,7 +2288,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
   /**
    * Render nodes and links for ancestors view
    */
-  private renderAncestorsViewNodes(treeData: any, nodePositions: Map<string, {x: number, y: number}>, spouseOffset: number): void {
+  private renderAncestorsViewNodes(treeData: any, nodePositions: Map<string, { x: number, y: number }>, spouseOffset: number): void {
     // Create drag behavior
     const dragBehavior = d3.drag()
       .subject((event: any, d: any) => {
@@ -2281,7 +2308,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
         nodePositions.set(individualId, { x: event.x, y: event.y });
 
         // Update links
-        this.g.selectAll('.link').attr('d', function(this: any) {
+        this.g.selectAll('.link').attr('d', function (this: any) {
           const sourceId = d3.select(this).attr('data-source');
           const targetId = d3.select(this).attr('data-target');
           const sourcePos = nodePositions.get(sourceId);
@@ -2294,22 +2321,22 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
 
         // Update spouse links
         this.g.selectAll('.spouse-link')
-          .attr('x1', function(this: any) {
+          .attr('x1', function (this: any) {
             const spouse1Id = d3.select(this).attr('data-spouse1');
             const pos = nodePositions.get(spouse1Id);
             return pos ? pos.x : 0;
           })
-          .attr('y1', function(this: any) {
+          .attr('y1', function (this: any) {
             const spouse1Id = d3.select(this).attr('data-spouse1');
             const pos = nodePositions.get(spouse1Id);
             return pos ? pos.y : 0;
           })
-          .attr('x2', function(this: any) {
+          .attr('x2', function (this: any) {
             const spouse2Id = d3.select(this).attr('data-spouse2');
             const pos = nodePositions.get(spouse2Id);
             return pos ? pos.x : 0;
           })
-          .attr('y2', function(this: any) {
+          .attr('y2', function (this: any) {
             const spouse2Id = d3.select(this).attr('data-spouse2');
             const pos = nodePositions.get(spouse2Id);
             return pos ? pos.y : 0;
@@ -2537,7 +2564,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
    */
   openGedcomImport(): void {
     const treeName = this.currentTree?.name || 'Tree';
-    
+
     const dialogRef = this.dialog.open(GedcomImportComponent, {
       width: '600px',
       data: {
@@ -2564,7 +2591,7 @@ export class TreeVisualizationComponent implements OnInit, OnDestroy {
    */
   exportGedcom(): void {
     const treeName = this.currentTree?.name || 'family-tree';
-    
+
     this.gedcomService.exportGedcom(this.treeId, treeName).subscribe({
       next: () => {
         this.snackBar.open(

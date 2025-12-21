@@ -1,0 +1,246 @@
+<h1 mat-dialog-title>
+  <mat-icon>merge</mat-icon>
+  Gộp Cây Gia Phả
+</h1>
+
+<mat-dialog-content>
+  <!-- Step 1: Select source and options -->
+  <div *ngIf="step === 'select'" class="step-content">
+    <div class="info-banner">
+      <mat-icon>info</mat-icon>
+      <span>Gộp dữ liệu từ cây khác vào <strong>{{ data.targetTree.name }}</strong></span>
+    </div>
+
+    <form [formGroup]="mergeForm">
+      <!-- Source Tree Selection -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Chọn cây nguồn</mat-label>
+        <mat-select formControlName="sourceTreeId">
+          <mat-option *ngFor="let tree of sourceTrees" [value]="tree.id">
+            {{ tree.name }} ({{ tree.individualsCount }} người)
+          </mat-option>
+        </mat-select>
+        <mat-hint>Chọn cây bạn muốn lấy dữ liệu</mat-hint>
+      </mat-form-field>
+
+      <!-- Strategy Selection -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Phương thức gộp</mat-label>
+        <mat-select formControlName="strategy">
+          <mat-option *ngFor="let s of strategies" [value]="s.value">
+            {{ s.label }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>
+          {{ selectedStrategyDescription }}
+        </mat-hint>
+      </mat-form-field>
+
+      <!-- Conflict Resolution -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Xử lý xung đột</mat-label>
+        <mat-select formControlName="conflictResolution">
+          <mat-option *ngFor="let r of resolutions" [value]="r.value">
+            {{ r.label }}
+          </mat-option>
+        </mat-select>
+        <mat-hint>Cách xử lý khi cùng người có thông tin khác nhau</mat-hint>
+      </mat-form-field>
+
+      <!-- Include Media -->
+      <div class="checkbox-row">
+        <mat-checkbox formControlName="includeMedia">
+          Gộp cả ảnh và file đính kèm
+        </mat-checkbox>
+      </div>
+    </form>
+  </div>
+
+  <!-- Step 2: Preview with Interactive Selection -->
+  <div *ngIf="step === 'preview' && preview" class="step-content">
+    <!-- Summary -->
+    <div class="preview-summary" [class.can-merge]="preview.canMerge" [class.cannot-merge]="!preview.canMerge">
+      <div class="summary-header">
+        <mat-icon *ngIf="preview.canMerge">check_circle</mat-icon>
+        <mat-icon *ngIf="!preview.canMerge">error</mat-icon>
+        <span *ngIf="preview.canMerge">Có thể gộp cây</span>
+        <span *ngIf="!preview.canMerge">Không thể gộp - Có lỗi cần xử lý</span>
+      </div>
+
+      <div class="summary-stats">
+        <div class="stat">
+          <span class="stat-value">{{ selectedCount }}</span>
+          <span class="stat-label">Đã chọn</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ preview.individualPreviews?.length || 0 }}</span>
+          <span class="stat-label">Tổng người</span>
+        </div>
+        <div class="stat" *ngIf="preview.summary.totalConflicts > 0">
+          <span class="stat-value warn">{{ preview.summary.totalConflicts }}</span>
+          <span class="stat-label">Xung đột</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Errors -->
+    <mat-expansion-panel *ngIf="preview.validationErrors?.length" class="error-panel">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon color="warn">error</mat-icon>
+          Lỗi ({{ preview.validationErrors.length }})
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="error-list">
+        <div *ngFor="let error of preview.validationErrors" class="error-item">
+          <mat-icon [class.blocking]="error.blocking">
+            {{ error.blocking ? 'block' : 'warning' }}
+          </mat-icon>
+          <span>{{ error.message }}</span>
+        </div>
+      </div>
+    </mat-expansion-panel>
+
+    <!-- Select All Controls -->
+    <div class="selection-controls">
+      <mat-checkbox [checked]="allSelected" (change)="allSelected ? deselectAll() : selectAll()">
+        Chọn tất cả ({{ selectedCount }}/{{ preview.individualPreviews?.length || 0 }})
+      </mat-checkbox>
+    </div>
+
+    <!-- Individual List with Selection -->
+    <div class="individual-preview-list">
+      <div *ngFor="let ind of preview.individualPreviews" class="individual-preview-item"
+        [class.selected]="isSelected(ind.sourceIndividualId)" [class.is-new]="ind.isNew"
+        [class.has-conflicts]="ind.hasConflicts">
+
+        <!-- Checkbox and main info -->
+        <div class="individual-header">
+          <mat-checkbox [checked]="isSelected(ind.sourceIndividualId)"
+            (change)="toggleIndividual(ind.sourceIndividualId)">
+          </mat-checkbox>
+
+          <div class="individual-mapping">
+            <div class="source-info">
+              <span class="person-name">{{ ind.sourceName }}</span>
+              <span class="person-details" *ngIf="ind.sourceBirthDate">{{ ind.sourceBirthDate }}</span>
+            </div>
+
+            <mat-icon class="arrow-icon">arrow_forward</mat-icon>
+
+            <div class="target-info" *ngIf="!ind.isNew">
+              <span class="person-name">{{ ind.targetName }}</span>
+              <span class="person-details" *ngIf="ind.targetBirthDate">{{ ind.targetBirthDate }}</span>
+            </div>
+            <div class="target-info new-person" *ngIf="ind.isNew">
+              <mat-icon>person_add</mat-icon>
+              <span>NGƯỜI MỚI</span>
+            </div>
+          </div>
+
+          <mat-chip [color]="getMatchTypeColorFromPreview(ind)">
+            {{ getMatchTypeLabelFromPreview(ind) }}
+            <span *ngIf="!ind.isNew"> ({{ getMatchPercentage(ind.matchScore) }}%)</span>
+          </mat-chip>
+        </div>
+
+        <!-- Conflicts (if any) -->
+        <div class="conflicts-section" *ngIf="ind.hasConflicts && ind.conflicts?.length">
+          <div class="conflict-item" *ngFor="let conflict of ind.conflicts">
+            <mat-icon color="warn">warning</mat-icon>
+            <span class="conflict-field">{{ conflict.field }}:</span>
+            <span class="conflict-values">
+              <span class="source-value">{{ conflict.sourceValue || '(trống)' }}</span>
+              <span class="vs">vs</span>
+              <span class="target-value">{{ conflict.targetValue || '(trống)' }}</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Relationships -->
+        <div class="relationships-section" *ngIf="ind.relationships?.length">
+          <div class="relationships-header">
+            <mat-icon>family_restroom</mat-icon>
+            <span>Quan hệ ({{ ind.relationships.length }})</span>
+          </div>
+          <div class="relationship-list">
+            <div *ngFor="let rel of ind.relationships" class="relationship-item"
+              [class.exists-in-target]="rel.existsInTarget">
+              <span class="rel-type">{{ getRelationshipTypeLabel(rel.type) }}</span>
+              <span class="rel-person">{{ rel.relatedPersonName }}</span>
+              <mat-icon *ngIf="rel.existsInTarget" class="exists-icon"
+                matTooltip="Đã có trong cây đích">check</mat-icon>
+              <mat-icon *ngIf="!rel.existsInTarget" class="new-icon" matTooltip="Sẽ thêm mới">add</mat-icon>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warnings -->
+    <div *ngIf="preview.warnings?.length" class="warnings">
+      <div *ngFor="let warning of preview.warnings" class="warning-item">
+        <mat-icon>info</mat-icon>
+        <span>{{ warning }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Result -->
+  <div *ngIf="step === 'result' && mergeResult" class="step-content result-step">
+    <div class="result-icon" [class.success]="mergeResult.success">
+      <mat-icon>{{ mergeResult.success ? 'check_circle' : 'error' }}</mat-icon>
+    </div>
+    <h2>{{ mergeResult.success ? 'Gộp cây thành công!' : 'Gộp cây thất bại' }}</h2>
+    <p>{{ mergeResult.message }}</p>
+
+    <div class="result-stats" *ngIf="mergeResult.success">
+      <div class="stat">
+        <mat-icon>person_add</mat-icon>
+        <span>{{ mergeResult.summary.individualsAdded }} người mới</span>
+      </div>
+      <div class="stat">
+        <mat-icon>edit</mat-icon>
+        <span>{{ mergeResult.summary.individualsUpdated }} người được cập nhật</span>
+      </div>
+      <div class="stat">
+        <mat-icon>link</mat-icon>
+        <span>{{ mergeResult.summary.relationshipsAdded }} mối quan hệ mới</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="previewLoading || loading" class="loading-overlay">
+    <mat-spinner diameter="48"></mat-spinner>
+    <span>{{ previewLoading ? 'Đang phân tích...' : 'Đang gộp cây...' }}</span>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <ng-container *ngIf="step === 'select'">
+    <button mat-button (click)="onClose()">Hủy</button>
+    <button mat-raised-button color="primary" [disabled]="mergeForm.invalid || previewLoading" (click)="onPreview()">
+      <mat-icon>preview</mat-icon>
+      Xem trước
+    </button>
+  </ng-container>
+
+  <ng-container *ngIf="step === 'preview'">
+    <button mat-button (click)="onBackToSelect()">
+      <mat-icon>arrow_back</mat-icon>
+      Quay lại
+    </button>
+    <button mat-raised-button color="primary" [disabled]="!preview?.canMerge || loading" (click)="onExecuteMerge()">
+      <mat-icon>merge</mat-icon>
+      Thực hiện gộp
+    </button>
+  </ng-container>
+
+  <ng-container *ngIf="step === 'result'">
+    <button mat-raised-button color="primary" (click)="onClose()">
+      <mat-icon>done</mat-icon>
+      Hoàn tất
+    </button>
+  </ng-container>
+</mat-dialog-actions>

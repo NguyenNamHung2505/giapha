@@ -37,6 +37,8 @@ public class TreeService {
     private final com.familytree.repository.IndividualRepository individualRepository;
     private final com.familytree.repository.RelationshipRepository relationshipRepository;
     private final com.familytree.repository.UserTreeProfileRepository userTreeProfileRepository;
+    private final com.familytree.repository.TreePermissionRepository treePermissionRepository;
+    private final com.familytree.repository.TreeInvitationRepository treeInvitationRepository;
     private final MediaRepository mediaRepository;
     private final IndividualCloneMappingRepository cloneMappingRepository;
     private final MinioService minioService;
@@ -150,21 +152,33 @@ public class TreeService {
         cloneMappingRepository.deleteByClonedTreeId(treeId);
         log.info("Deleted clone mappings for tree {}", treeId);
 
-        // 2. Delete media files from MinIO and database
+        // 2. Delete user tree profiles (user-to-individual links)
+        userTreeProfileRepository.deleteByTreeId(treeId);
+        log.info("Deleted user tree profiles for tree {}", treeId);
+
+        // 3. Delete tree permissions
+        treePermissionRepository.deleteByTreeId(treeId);
+        log.info("Deleted tree permissions for tree {}", treeId);
+
+        // 4. Delete tree invitations
+        treeInvitationRepository.deleteByTreeId(treeId);
+        log.info("Deleted tree invitations for tree {}", treeId);
+
+        // 5. Delete media files from MinIO and database
         deleteMediaFiles(treeId);
 
-        // 3. Delete avatar files from MinIO
+        // 6. Delete avatar files from MinIO
         deleteAvatarFiles(treeId);
 
-        // 4. Delete relationships (must be before individuals due to FK constraints)
+        // 7. Delete relationships (must be before individuals due to FK constraints)
         relationshipRepository.deleteByTreeId(treeId);
         log.info("Deleted relationships for tree {}", treeId);
 
-        // 5. Delete individuals
+        // 8. Delete individuals
         individualRepository.deleteByTreeId(treeId);
         log.info("Deleted individuals for tree {}", treeId);
 
-        // 6. Delete the tree itself
+        // 9. Delete the tree itself
         treeRepository.delete(tree);
         log.info("Tree {} deleted successfully", treeId);
     }

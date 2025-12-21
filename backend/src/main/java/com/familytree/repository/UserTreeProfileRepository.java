@@ -61,4 +61,11 @@ public interface UserTreeProfileRepository extends JpaRepository<UserTreeProfile
      * Delete all profiles for an individual
      */
     void deleteByIndividualId(UUID individualId);
+
+    /**
+     * Delete all profiles for a tree
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM UserTreeProfile utp WHERE utp.tree.id = :treeId")
+    void deleteByTreeId(@Param("treeId") UUID treeId);
 }

@@ -95,4 +95,25 @@ public interface TreePermissionRepository extends JpaRepository<TreePermission, 
      * @param user the user
      */
     void deleteByTreeAndUser(FamilyTree tree, User user);
+
+    /**
+     * Check if user has any permission for a tree
+     */
+    boolean existsByTreeIdAndUserId(UUID treeId, UUID userId);
+
+    /**
+     * Check if user has specific permission for a tree
+     */
+    @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END FROM TreePermission p " +
+           "WHERE p.tree.id = :treeId AND p.user.id = :userId AND p.role = :permission")
+    boolean existsByTreeIdAndUserIdAndPermission(@Param("treeId") UUID treeId,
+                                                   @Param("userId") UUID userId,
+                                                   @Param("permission") PermissionRole permission);
+
+    /**
+     * Delete all permissions for a tree
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("DELETE FROM TreePermission p WHERE p.tree.id = :treeId")
+    void deleteByTreeId(@Param("treeId") UUID treeId);
 }

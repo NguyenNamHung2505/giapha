@@ -64,7 +64,8 @@
                 {{ admin.name || admin.email }}{{ !last ? ', ' : '' }}
               </span>
             </span>
-            <span class="no-admin" *ngIf="!tree.admins || tree.admins.length === 0">{{ 'tree.noAdmin' | translate }}</span>
+            <span class="no-admin" *ngIf="!tree.admins || tree.admins.length === 0">{{ 'tree.noAdmin' | translate
+              }}</span>
           </td>
         </ng-container>
 
@@ -102,7 +103,12 @@
                   <span>{{ 'gedcom.import' | translate }}</span>
                 </button>
                 <button mat-menu-item>
-                  <app-gedcom-export-button [treeId]="tree.id" [treeName]="tree.name" color="primary"></app-gedcom-export-button>
+                  <app-gedcom-export-button [treeId]="tree.id" [treeName]="tree.name"
+                    color="primary"></app-gedcom-export-button>
+                </button>
+                <button mat-menu-item (click)="openMergeDialog(tree, $event)">
+                  <mat-icon>merge</mat-icon>
+                  <span>Gộp cây gia phả</span>
                 </button>
                 <mat-divider></mat-divider>
                 <button mat-menu-item color="warn" (click)="deleteTree(tree)">
@@ -115,16 +121,12 @@
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="tree-row clickable-row" (click)="viewTree(row)"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="tree-row clickable-row"
+          (click)="viewTree(row)"></tr>
       </table>
 
-      <mat-paginator
-        [length]="totalElements"
-        [pageIndex]="pageIndex"
-        [pageSize]="pageSize"
-        [pageSizeOptions]="[5, 10, 20, 50]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
+      <mat-paginator [length]="totalElements" [pageIndex]="pageIndex" [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 20, 50]" (page)="onPageChange($event)" showFirstLastButtons>
       </mat-paginator>
     </div>
   </mat-card>

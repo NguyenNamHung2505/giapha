@@ -10,10 +10,12 @@
     <span class="toolbar-spacer"></span>
 
     <!-- Right side controls -->
-    <button mat-icon-button [routerLink]="['/trees', treeId, 'individuals']" [matTooltip]="'individual.manageIndividuals' | translate">
+    <button mat-icon-button [routerLink]="['/trees', treeId, 'individuals']"
+      [matTooltip]="'individual.manageIndividuals' | translate">
       <mat-icon>people</mat-icon>
     </button>
-    <button mat-icon-button [routerLink]="['/trees', treeId, 'relationship-calculator']" [matTooltip]="'relationship.calculateRelationship' | translate">
+    <button mat-icon-button [routerLink]="['/trees', treeId, 'relationship-calculator']"
+      [matTooltip]="'relationship.calculateRelationship' | translate">
       <mat-icon>calculate</mat-icon>
     </button>
     <button mat-icon-button (click)="openGedcomImport()" [matTooltip]="'gedcom.import' | translate">
@@ -21,6 +23,11 @@
     </button>
     <button mat-icon-button (click)="exportGedcom()" [matTooltip]="'gedcom.export' | translate">
       <mat-icon>download</mat-icon>
+    </button>
+    <!-- Sync button for cloned trees -->
+    <button mat-icon-button *ngIf="isClonedTree()" (click)="openSyncDialog()"
+      [matTooltip]="'Đồng bộ với cây gốc: ' + (treeCloneInfo?.sourceTreeInfo?.sourceTreeName || '')" color="primary">
+      <mat-icon>sync</mat-icon>
     </button>
     <button mat-icon-button (click)="refresh()" [matTooltip]="'common.refresh' | translate">
       <mat-icon>refresh</mat-icon>
@@ -46,10 +53,8 @@
         <mat-icon>arrow_drop_down</mat-icon>
       </button>
       <mat-menu #perspectiveMenu="matMenu">
-        <button mat-menu-item
-                *ngFor="let person of availablePerspectives"
-                (click)="changePerspective(person)"
-                [class.active]="currentPerspective?.id === person.id">
+        <button mat-menu-item *ngFor="let person of availablePerspectives" (click)="changePerspective(person)"
+          [class.active]="currentPerspective?.id === person.id">
           <mat-icon *ngIf="currentPerspective?.id === person.id">check</mat-icon>
           <span>{{ person.fullName }}</span>
         </button>
@@ -80,10 +85,8 @@
     </div>
 
     <!-- Previous View Button -->
-    <button mat-stroked-button
-            (click)="returnToPreviousView()"
-            [disabled]="!canReturnToPreviousView()"
-            class="prev-view-button">
+    <button mat-stroked-button (click)="returnToPreviousView()" [disabled]="!canReturnToPreviousView()"
+      class="prev-view-button">
       <mat-icon>undo</mat-icon>
       {{ 'visualization.returnPrevious' | translate }}
     </button>
@@ -100,17 +103,17 @@
           <strong>{{ currentPerspective?.fullName }}</strong>
         </div>
         <mat-divider></mat-divider>
-        <button mat-menu-item
-                *ngFor="let location of perspectiveCloneInfo?.allTreeLocations"
-                (click)="navigateToPersonInTree(location)"
-                [class.current-tree]="location.isCurrentTree"
-                [disabled]="location.isCurrentTree">
+        <button mat-menu-item *ngFor="let location of perspectiveCloneInfo?.allTreeLocations"
+          (click)="navigateToPersonInTree(location)" [class.current-tree]="location.isCurrentTree"
+          [disabled]="location.isCurrentTree">
           <mat-icon *ngIf="location.isCurrentTree" color="primary">check</mat-icon>
           <mat-icon *ngIf="!location.isCurrentTree && location.isSourceTree">source</mat-icon>
           <mat-icon *ngIf="!location.isCurrentTree && !location.isSourceTree">content_copy</mat-icon>
           <span>{{ location.treeName }}</span>
-          <span class="tree-badge" *ngIf="location.isCurrentTree">({{ 'individual.viewInTree.current' | translate }})</span>
-          <span class="tree-badge source" *ngIf="!location.isCurrentTree && location.isSourceTree">({{ 'individual.viewInTree.source' | translate }})</span>
+          <span class="tree-badge" *ngIf="location.isCurrentTree">({{ 'individual.viewInTree.current' | translate
+            }})</span>
+          <span class="tree-badge source" *ngIf="!location.isCurrentTree && location.isSourceTree">({{
+            'individual.viewInTree.source' | translate }})</span>
         </button>
       </mat-menu>
     </div>

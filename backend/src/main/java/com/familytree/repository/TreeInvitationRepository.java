@@ -51,6 +51,14 @@ public interface TreeInvitationRepository extends JpaRepository<TreeInvitation, 
     /**
      * Delete expired invitations
      */
+    @org.springframework.data.jpa.repository.Modifying
     @Query("DELETE FROM TreeInvitation i WHERE i.expiresAt < :now AND i.status = 'PENDING'")
     void deleteExpired(LocalDateTime now);
+
+    /**
+     * Delete all invitations for a tree
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM TreeInvitation i WHERE i.tree.id = :treeId")
+    void deleteByTreeId(UUID treeId);
 }
